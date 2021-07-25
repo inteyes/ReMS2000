@@ -26,7 +26,7 @@ I also suggest you to change synthesizer clock mode to "External" before transmi
 
 At this point the panel is ready to work!
 ### Afterword
-This panel created using great [Ctrlr software](https://github.com/RomanKubiak/ctrlr) by Roman Kubiak. While you are able to run Ctrlr on your system - you are able to run this panel. Release will be packed with source .panel file.
+This panel was created using great [Ctrlr software](https://github.com/RomanKubiak/ctrlr) by Roman Kubiak. While you are able to run Ctrlr on your system - you are able to run this panel. Release will be packed with source .panel file.
 
 Exported instances (standalone, vst32, vst64) will be provided only for single platform - Windows.
 
