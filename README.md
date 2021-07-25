@@ -1,5 +1,5 @@
 ## Re:MS2000
-Here it is - free and open source Korg MS2000 MIDI editor and librarian.
+Here it is - free and open source Korg MS2000 MIDI editor and librarian panel.
 ### What is implemented
 - [X] Program management
   - Save / load single programs and patch banks to / from disk
