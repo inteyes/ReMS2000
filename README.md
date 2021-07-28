@@ -7,8 +7,8 @@ Here it is - free and open source Korg MS2000 MIDI editor and librarian panel.
 - [X] Access to all "Edit (LCD) Mode" parameters
 - [X] Sequence editor
 - [X] Recalling parameters on project load (must be activated in the panel settings first)
+- [X] Vocoder mode (will be implemented later)
 ### What is in development
-- [ ] Vocoder mode (will be implemented later)
 - [ ] Transferring data between timbres
 - [ ] Interface tuning
 ### Beta version
