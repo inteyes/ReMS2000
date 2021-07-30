@@ -33,3 +33,5 @@ This panel was created using great [Ctrlr software](https://github.com/RomanKubi
 Exported instances (standalone, vst32, vst64) will be provided only for single platform - Windows.
 
 Have fun using your MS2000!
+
+![ReMS2000 panel](https://github.com/inteyes/ReMS2000/blob/main/.wiki/Screen1.png)
