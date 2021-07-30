@@ -8,11 +8,13 @@ Here it is - free and open source Korg MS2000 MIDI editor and librarian panel.
 - [X] Sequence editor
 - [X] Recalling parameters on project load (must be activated in the panel settings first)
 - [X] Vocoder mode
+- [X] Transferring data between timbres
+- [X] \*.prg format support for single patches (still untested)
 ### What is in development
-- [ ] Transferring data between timbres
 - [ ] Interface tuning
+- [ ] Saving panel settings into a separate file on HDD instead of DAW project save state
 ### Beta version
-This is a beta version and may contain bugs. Feel free to report if you found any. Details of what happened and under what circumstances are highly appreciated. 
+This is a beta version and may contain bugs. <strike>Contact me by codec</strike> Feel free to report if you found any. Details of what happened and under what circumstances are highly appreciated. 
 ### Quick start
 - Synthesizer side
   - Global options - 2A Memory Protect - Off
