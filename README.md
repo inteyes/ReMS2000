@@ -14,8 +14,8 @@ Here it is - free and open source Korg MS2000 MIDI editor and librarian panel.
 ### What is in development
 - [ ] Interface tuning
 - [ ] Bugfixes
-### Beta version
-This is a beta version and may contain bugs. <strike>Contact me by codec</strike> Feel free to report if you found any. Details of what happened and under what circumstances are highly appreciated. 
+### Note for users
+This software may contain bugs. <strike>Contact me by codec</strike> Feel free to report if you found any. Details of what happened and under what circumstances are highly appreciated. 
 ### Quick start
 - Synthesizer side
   - Global options - 2A Memory Protect - Off
