@@ -11,9 +11,10 @@ Here it is - free and open source Korg MS2000 MIDI editor and librarian panel.
 - [X] Transferring data between timbres
 - [X] \*.prg format support for single patches (still untested)
 - [X] Saving panel settings into a separate file on HDD instead of DAW project save state
-- [X] Black color scheme support
+- [X] Color schemes support
 ### What is in development
 - [ ] Interface tuning
+- [ ] Patch randomizer
 - [ ] Bugfixes
 ### Note for users
 This software may contain bugs. <strike>Contact me by codec</strike> Feel free to report if you found any. Details of what happened and under what circumstances are highly appreciated. 
