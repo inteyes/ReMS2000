@@ -14,8 +14,7 @@ Here it is - free and open source Korg MS2000 MIDI editor and librarian panel.
 - [X] Color schemes support
 - [X] Timbre randomizer
 ### What is in development
-- [ ] Interface tuning
-- [ ] Bugfixes
+- [ ] Nothing more
 ### Note for users
 This software may contain bugs. <strike>Contact me by codec</strike> Feel free to report if you found any. Details of what happened and under what circumstances are highly appreciated. 
 ### Quick start
@@ -34,6 +33,8 @@ At this point the panel is ready to work!
 This panel was created using great [Ctrlr software](https://github.com/RomanKubiak/ctrlr) by Roman Kubiak. While you are able to run Ctrlr on your system - you are able to run this panel. Release will be packed with source .panel file.
 
 Exported instances (standalone, vst32, vst64) will be provided only for single platform - Windows.
+
+You also might want to check the [Youtube Demo](https://youtu.be/4hGYO-hkgUc).
 
 Have fun using your MS2000!
 
