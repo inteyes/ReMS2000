@@ -1,5 +1,272 @@
 -- Plain lua code extracted from *.panel file
 
+function setGlobalVars()
+
+	sharedValues = {}
+
+	sharedValues.selectedPreset			= 1				-- Selected program on the panel
+	sharedValues.selectedBank 			= 1 			-- Selected bank on the panel
+	sharedValues.synthPreset			= 0 			-- Selected program on the MS2000
+	sharedValues.synthBank 				= 0 			-- Selected bank on the MS2000
+	sharedValues.synthProgram			= 0 			-- Calculated synth program number (bank + preset) for writing
+	sharedValues.selectedTimbre 		= 0
+	sharedValues.selectedSequence		= 0
+	sharedValues.midiActivity			= 0 			-- Midi activity flag for blinking the indicator
+	sharedValues.reachStatus			= 0			
+	sharedValues.timbreMode 			= tmSynth		-- Current global mode - synthesizer / vocoder
+	sharedValues.voiceMode				= vmUndefined	-- More specific mode description
+	sharedValues.deviceStatus 			= dsOffline		-- Device status according to the panel
+	sharedValues.operationMode			= omDefault		-- Synthesizer operation mode (Program, Edit, Global)
+	sharedValues.hintMessage			= ""
+	sharedValues.saveToRamEnabled		= 0				-- Flag to show if preset belong or not to specific program of the bank
+	sharedValues.allowChangeSeq			= false			-- Flag to prevent auto sequence changing			
+	sharedValues.isSequencerDragging	= false
+	sharedValues.sequencerStartY		= 0
+	sharedValues.sequencerKnob			= 0				-- Knob to be affected by sequencer dragging
+	sharedValues.sequencerKnobValue		= 0				-- Value at the moment of drag begins
+	sharedValues.applySettingsOnCatch	= false			-- Required for settings merging routine
+	sharedValues.ignoreSettingsButton	= true			-- Workaround for strange behaviour when settings page was not closed before saving state
+	sharedValues.customBGColor			= SEQ_BACKGROUND
+	sharedValues.playMessageTuple		= {}			-- Program Play mode can send 3 messages in a row, but Ctrlr do not recognize them as multimessage
+	sharedValues.resetDWGS				= true			-- Flag to process OSC1 Control2 bounds and formula
+	sharedValues.restartRequired		= false			-- Flag to indicate if panel restart is required
+
+	-- SysEx formula templates for non-visual components, will be overriden in certain methods
+	sharedValues.osc1SEValues 	= {0xF0, 0x42, 0x00, 0x58, 0x41, 0x49, 0x00, 0x00, 0x00, 0xF7}
+	sharedValues.osc2SEValues 	= {0xF0, 0x42, 0x00, 0x58, 0x41, 0x4D, 0x00, 0x00, 0x00, 0xF7}
+	sharedValues.oscModSEValues = {0xF0, 0x42, 0x00, 0x58, 0x41, 0x4E, 0x00, 0x00, 0x00, 0xF7}
+	sharedValues.filterSEValues = {0xF0, 0x42, 0x00, 0x58, 0x41, 0x54, 0x00, 0x00, 0x00, 0xF7}
+	sharedValues.LFO1SEValues 	= {0xF0, 0x42, 0x00, 0x58, 0x41, 0x68, 0x00, 0x00, 0x00, 0xF7}
+	sharedValues.LFO2SEValues 	= {0xF0, 0x42, 0x00, 0x58, 0x41, 0x6D, 0x00, 0x00, 0x00, 0xF7}
+
+	panelSettings = {}
+
+	panelSettings.sendProgOnStartup	= 0
+	panelSettings.sendOnProgChange	= 0
+	panelSettings.reqProgOnChange	= 0	-- Request program on change synthesizer's program number
+	panelSettings.autocheckLCDMode	= 0	-- Force LCD mode on every poll cycle
+	panelSettings.disableWarnings	= 0	-- Disable all warning dialogs. Might be dangerous
+	panelSettings.clockSource		= 2
+	panelSettings.localMode			= 1
+	panelSettings.continuousPolling	= 1
+	panelSettings.selectorsSource	= pbsPanel	-- Flag to recognize where to cycle program - on the panel, or on the synthesizer side
+	panelSettings.selectedSkin		= csDefault
+
+	-- Skin colors
+	skinColors = {}
+
+	-- Init default colors
+	defaultScheme()
+
+	-- Timer flags
+	timerFlags = {}
+
+	-- Flags to indicate if some kind of data is expected or not
+	-- Data that not expected will be ignored on input
+	timerFlags.waitForSingleProgram	= false
+	timerFlags.waitForBulkDump		= false
+	timerFlags.waitForSettings		= false
+	timerFlags.waitForWriteReply	= false
+
+	-- Patch bank
+	presetBank = initPresetBank()
+
+	-- Current program data buffer. It's INIT program by default
+	dataBuffer = copyTable(presetBank[1][1])
+
+	-- Vocoder buffer
+	vocoderBuffer = initVocoderBuffer()
+
+	-- Timbre clipboard
+	timbreClipboard = {}
+
+	-- Sequence clipboard
+	seqClipboard = {}
+end
+
+function setGlobalConstants()
+
+	panelVersion = "1.3.3"
+
+	-- Color definitions
+	COMP_DISABLED_ALPHA	= 0.5
+	COMP_ENABLED_ALPHA	= 1
+
+	-- LCD
+	LCD_BASE		= Colour(0xFF333333)
+	LCD_BACKLIGHT  	= Colour(0xFFc4e283)
+	LCD_DIGITS 	   	= Colour(0xFFb5ca87)
+	LCD_TEXT		= Colour(0xFF202020)
+	LCD_GLOW_START 	= Colour(0x25FFFFFF)
+	LCD_GLOW_END   	= Colour(0x00FFFFFF)
+
+	-- Icons
+	ICON_ORANGE	= Colour(0xFFC6A34E)
+	ICON_GREEN	= Colour(0xFF66BB66)
+	ICON_RED	= Colour(0xFFDD6666)
+
+	-- Drawing colors
+	COLOR_SURFACE_LINE		= Colour(0xFFBABABA)
+	COLOR_SURFACE_LINE_DARK	= Colour(0xFF9A9A9A) 
+	COLOR_GREY_TEXT			= Colour(0xFF9A9A9A)
+	COLOR_TRANSPARENT		= Colour(0x00000000)
+	COLOR_PANEL_BG			= Colour(0xFF334657)
+	COLOR_SETUP_BG			= Colour(0xFA334657)
+	COLOR_PANEL_BG_BLK		= Colour(0xFF353535)
+	COLOR_SETUP_BG_BLK		= Colour(0xFA353535)
+	COLOR_VOCODER_LABEL		= Colour(0xFFAAAAAA)
+	COLOR_COMBO_TEXT		= Colour(0xFFA6914F)
+	COLOR_BUFFER_COPY		= Colour(0xFFA6524A)
+	COLOR_BUFFER_COPY_V		= Colour(0xFF4A85A6)
+	COLOR_BUFFER_TEXT		= Colour(0xFFFAFAFA)
+	COLOR_BUFFER_TEXT_EMPTY	= Colour(0xFFBABABA)
+	COLOR_EMERGENCY			= Colour(0xFF993333)
+	COLOR_SEQ_BG_BLACK		= Colour(0xFF1A2024)
+	COLOR_GROUPBOX_OUTLINE	= Colour(0xFFA3A3A3)
+	COLOR_GROUPBOX_LABEL	= Colour(0xFFBABABA)
+
+	-- Sequencer
+	SEQ_BACKGROUND		= Colour(0xFF2A3034)
+	SEQ_BG_ALTER		= Colour(0xFF252A2E)
+	SEQ_BG_ALTER_BLACK	= Colour(0xFF202529)
+	SEQ_NUMBER_ONE   	= Colour(0xFF00FF00)
+	SEQ_NUMBER_TWO   	= Colour(0xFF00CCFF)
+	SEQ_NUMBER_THREE 	= Colour(0xFFFFCC00)
+	SEQ_GRAYED_OUT		= Colour(0xFFBABABA)
+
+	-- Operation modes
+	omDefault = 0
+	omLCD 	  = 1
+	omGlobal  = 2
+
+	-- Device status
+	dsOnline	= 0
+	dsBusy		= 1
+	dsOffline	= 2
+	dsError		= 3
+
+	-- Error codes
+	errMaxValExceeded = 0
+
+	-- Timbre modes
+	tmSynth		= 0
+	tmVocoder	= 1
+
+	-- Voice modes
+	vmUndefined	= -1
+	vmSingle	= 0
+	vmSplit		= 1
+	vmDual		= 2
+	vmVocoder	= 3
+
+	-- Destination program buffer
+	dbSynth		= 0
+	dbVocoder	= 1
+
+	-- Color scheme
+	csDefault	= 0
+	csBlack		= 1
+	csNordLead	= 2
+	csJP8080	= 3
+
+	-- Supported file extensions
+	SUPPORTED_EXT_MASK		= "*.syx;*.mid"
+	SUPPORTED_EXT_MASK_ALT	= "*.syx;*.mid;*.prg"
+
+	-- Bank \ program selection source
+	pbsPanel	= 0
+	pbsSynth	= 1
+
+	-- Program data values
+	DATA_PREAMBLE_BYTES		= 5		-- SysEx header
+	COMMON_DATA_SIZE		= 38	-- Shared values for both timbres
+
+	-- Dump size values
+	-- Raw MIDI data
+	SINGLE_PROGRAM_SIZE		= 297	-- (291 + 5 bytes SysEx header + F7)
+	GLOBAL_DATA_SIZE		= 235	-- (229 + SysEx data)
+	PROGRAM_BANK_DUMP_SIZE	= 37163	-- (37157 + SysEx data)
+	ALL_DATA_DUMP_SIZE		= 37392 -- (37386 + SysEx data)
+	MKSINGLE_PROGRAM_SIZE	= SINGLE_PROGRAM_SIZE + 2 --(MicroKorg program size)
+
+	-- Special cases
+	HANDSON_DUMP_SIZE		= 37395
+
+	-- MIDI-to-Program converted data size
+	SINGLE_PROGRAM_INT_SIZE = 254	
+
+	TIMBRE_DATA_SIZE		= 108
+	TIMBRE_ONE_STARTBYTE	= DATA_PREAMBLE_BYTES + COMMON_DATA_SIZE + 1
+	TIMBRE_TWO_STARTBYTE	= TIMBRE_ONE_STARTBYTE + TIMBRE_DATA_SIZE
+
+	-- Buffer copy values
+	SEQUENCE_STARTBYTE_DISP		= 53
+	SEQUENCE_DATA_SIZE			= 55
+	VOCODER_SEQDATA_STARTBYTE	= 47
+	VOCODER_SEQDATA_SIZE		= 32
+
+	-- Timbre values
+	OSC1_WAVEFORM_DISP	= 7
+	OSC2_WAVEFORM_DISP	= 12 -- WARNING, packed byte, bits 0~1
+	OSCMODULATION_DISP	= 12 -- WARNING, packed byte, bits 4~5
+	FILTER_TYPE_DISP	= 19
+	LFO1_TYPE_DISP		= 38 -- WARNING, packed byte, bits 0~1
+	LFO2_TYPE_DISP		= 41 -- WARNING, packed byte, bits 0~1
+
+	-- Vocoder values
+	OSC1_WAVEFORM_VCD_DISP	= 8
+	FILTER_TYPE_VCD_DISP	= 22
+	LFO1_TYPE_VCD_DISP		= 41
+	LFO2_TYPE_VCD_DISP		= 44
+
+	SYSEX_VAL_DIFF		= 272	-- Difference between modulator numbers on different layers
+	SYSEX_VAL_DIFF_ALT	= 400
+
+	-- Dump type
+	dtInvalidSz	= -1
+	dtProgBank	= 0
+	dtAllData	= 1
+	dtHandson	= 2
+
+	-- PopUp result values
+	prOpenProgram		= 1
+	prOpenDump			= 2
+	prSaveProgram		= 10
+	prSaveDump			= 11
+	prSaveToRAM			= 12
+	prRenameProgram		= 15
+	prInitProgram		= 20
+	prInitBank			= 21
+	prRequestProgram	= 30
+	prWriteProgram		= 31
+	prRequestSysexDump	= 40
+	prWriteSysexDump	= 41
+
+	-- Timer values
+	POLL_TIMER			= 10000	-- Constant synth availability polling
+	SHOWHINT_TIMER		= 15000	-- How long hint will be shown
+	STARTUP_TIMER		= 250	-- Delay before applying all startup data
+	BLINKMIDI_TIMER		= 75	-- How long midi indicator shown
+	WAIT_PROGRAM_TIMER	= 3000	-- Wait for program to be received
+	WAIT_BANK_TIMER		= 22000 -- Wait for program bank to be received
+	POLLSTATE_TIMER		= 3000	-- Timeout for synth mode request
+	WAITFORSET_TIMER	= 3000	-- Timeout for synth settings request
+	DELAY_PROG_REQUEST	= 300	-- Delay before run request
+
+	STARTUP_TIMER_ID		= 1
+	HINT_TIMER_ID			= 10
+	POLL_TIMER_ID			= 20
+	BLINKMIDI_TIMER_ID		= 30
+	WAIT_PROGRAM_TIMER_ID	= 40
+	WAIT_BANK_TIMER_ID		= 41
+	POLLSTATE_TIMER_ID		= 50
+	WAITFORSET_TIMER_ID		= 80
+	DELAY_PROG_REQUEST_ID	= 90
+	WAITFORWRITE_REPLY_ID	= 100 -- Will indicate if write ok reply was or was not received
+
+	DEFINE_DEBUG = false
+end
+
 function startupSequence()
 
 	-- Starting up the panel here
@@ -75,6 +342,78 @@ function finalStartupOperations()
 
 	-- Run timer to avoid firing scripts up while panel initializing
 	startupTimer()
+end
+
+
+-- Short aliases for often used methods
+
+function modByName(modname)
+	return panel:getModulatorByName(modname)
+end
+
+
+function getComp(modname)
+	return modByName(modname):getComponent()
+end
+
+
+function setCompProp(modname, propname, propvalue)
+	-- propvalue should be string
+	
+	return panel:getModulatorByName(modname):getComponent():setPropertyString(propname, propvalue)
+end
+
+
+function getCompProp(modname, propname)	
+	return panel:getModulatorByName(modname):getComponent():getProperty(propname)
+end
+
+
+function getCompPropN(modname, propname)	
+	return panel:getModulatorByName(modname):getComponent():getPropertyInt(propname)
+end
+
+
+function setCompPropN(modname, propname, propvalue)
+	-- propvalue should be integer
+	
+	return panel:getModulatorByName(modname):getComponent():setPropertyInt(propname, propvalue)
+end
+
+
+function getModProp(modulator, prop)
+	return modulator:getProperty(prop)
+end	
+
+
+function getModPropN(modulator, prop)
+	return modulator:getPropertyInt(prop)
+end	
+
+
+function getModValue(modname)
+
+	return modByName(modname):getModulatorValue()
+end
+
+
+function hideLayer(layername)
+	panel:getCanvas():getLayerByName(layername):setVisible(false)
+end
+
+
+function showLayer(layername)
+	panel:getCanvas():getLayerByName(layername):setVisible(true)
+end
+
+
+function hideLayerN(layerid)
+	panel:getCanvas():getLayerFromArray(layerid):setVisible(false)
+end
+
+
+function showLayerN(layerid)
+	panel:getCanvas():getLayerFromArray(layerid):setVisible(true)
 end
 
 function calculateLSBMSB(calcVal, fullByte, nibbleLSB)
@@ -685,23 +1024,6 @@ function debugActions(mod, value, source)
 
 	--setGlobalVars()
 	--setGlobalConstants()
-end
-
-function devNotes()
-	--[[ 
-		[HIGH PRIOR]
-		- None
-
-		[LOW PRIOR]
-		- Improve compatibility with more midi-dumps formats if it is possible
-
-		[DISTANT FUTURE]
-		- FC MOD INT - fully rebind handling to knob Patch 1 instead of EG1 Int
-		- None
-
-		[NOTES]
-		- Change seq make seq step appear
-	--]]
 end
 
 function bankListPopup(load)
@@ -4294,7 +4616,7 @@ end
 
 --[[
 
-	VERSION 1.3.3 (23.02.2021)
+	VERSION 1.3.3 (23.02.2022)
 
 	[+] Added connected MIDI device information to the Info panel
 	[+] Resetting related knob value by double-clicking on the sequencer area
