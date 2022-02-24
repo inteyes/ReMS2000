@@ -1026,6 +1026,79 @@ function debugActions(mod, value, source)
 	--setGlobalConstants()
 end
 
+function presetPopupMenu(mod, value, source)
+
+	if blockExecution(source) then
+		return
+	end
+
+	-- Fix shown value in the variable to avoid frustration if program number
+ 	-- will change on the fly at the synthesizer side
+	sharedValues.synthProgram = (sharedValues.synthBank * 16) + sharedValues.synthPreset
+
+	local popupWin = PopupMenu()
+	local loadPresetFromBankWin = bankListPopup(true)
+	local savePresetToBankWin = bankListPopup(false)
+
+	popupWin:addSectionHeader("Preset menu:")
+
+	popupWin:addSubMenu("Load program", loadPresetFromBankWin, true, Image(), false, 0)
+
+	popupWin:addSeparator()
+
+	if sharedValues.saveToRamEnabled == 0 then
+		popupWin:addItem(prSaveToRAM, "Save program to RAM", false, false)
+	else
+		popupWin:addItem(prSaveToRAM, "Save program to RAM", true, false)
+	end
+
+	popupWin:addSubMenu("Save program to RAM as", savePresetToBankWin, true, Image(), false, 0)
+
+	popupWin:addSeparator()
+
+	if sharedValues.saveToRamEnabled == 0 then
+		popupWin:addItem(prRenameProgram, "Rename program", false, false)
+	else
+		popupWin:addItem(prRenameProgram, "Rename program", true, false)
+	end
+
+	popupWin:addSeparator()
+
+	popupWin:addItem(prOpenProgram, "Open single program from disk", true, false)
+	popupWin:addItem(prOpenDump, "Open full sysex dump from disk", true, false)
+
+	popupWin:addSeparator()
+
+	popupWin:addItem(prSaveProgram, "Export single program to disk", true, false)
+	popupWin:addItem(prSaveDump, "Export full sysex dump to disk", true, false)
+
+	popupWin:addSeparator()
+
+	popupWin:addItem(prInitProgram, "Initialize program", true, false)
+	popupWin:addItem(prInitBank, "Initialize program bank", true, false)
+
+	popupWin:addSeparator()
+
+	popupWin:addSectionHeader("Request data:")
+
+	popupWin:addItem(prRequestProgram, "Request current program from hardware", true, false)
+	popupWin:addItem(prRequestSysexDump, "Request full sysex dump from hardware", true, false)
+
+	popupWin:addSeparator()
+
+	popupWin:addSectionHeader("Store data:")
+
+	popupWin:addItem(prWriteProgram, string.format("Write current program to device memory [%s:%.2d]", 
+					bankIDToName(sharedValues.synthBank + 1), sharedValues.synthPreset + 1), true, false)
+
+	popupWin:addItem(prWriteSysexDump, "Write full sysex dump to hardware", true, false)
+
+	popupWin:addSectionHeader(" ")
+	--popupWin:addItem(-1, "DEBUG ACTION", true, false)
+
+	processPopupResult(popupWin:show(0, 0, 0, 22))
+end
+
 function bankListPopup(load)
 	
 	local popupWin = PopupMenu()
@@ -1161,6 +1234,17 @@ function processPopupResult(puResult)
 	if puResult == -1 then
 		debugActions()
 	end
+end
+
+function openPresetPopup(mod, value, source)
+	
+	if blockExecution(source) then
+		return
+	end
+
+	local popupWin = bankListPopup(true)
+
+	processPopupResult(popupWin:show(0, 0, 0, 22))
 end
 
 function drawOsc1Waveforms(comp, g)
@@ -1509,6 +1593,110 @@ function drawLCDScreen(comp, g)
 					  fullW, fullH / 2, false))
 
 	g:fillRoundedRectangle(1, 1, fullW - 2, fullH - 2, 1)
+end
+
+function showSettings(mod, value, source)
+
+	if blockExecution(source) then
+		return
+	end
+
+	-- Pretty dumb, but cannot find any better solution
+	if sharedValues.ignoreSettingsButton == true then
+		sharedValues.ignoreSettingsButton = false
+		return
+	end
+
+	if value == 1 then
+
+		local i, devNum = 0, 0
+		local cDev = ""
+		local devArr = StringArray()
+
+		-- Apply stored values to settings controls
+		setModValue("btnSendProgramOnStartup", panelSettings.sendProgOnStartup)
+		setModValue("btnSendDataOnProgramChange", panelSettings.sendOnProgChange)
+		setModValue("btnContinuousPolling", panelSettings.continuousPolling)
+		setModValue("btnAutocheckLCDMode", panelSettings.autocheckLCDMode)
+		setModValue("btnSettingsLocalMode", panelSettings.localMode)
+		setModValue("cbClockSource", panelSettings.clockSource)
+		setModValue("btnDisableWarnings", panelSettings.disableWarnings)
+		setModValue("cbColorScheme", panelSettings.selectedSkin)
+		setModValue("btnRequestDataOnProgramChange", panelSettings.reqProgOnChange)
+
+		-- Load MIDI input \ output devices into certain combos
+
+		-- Input devices list
+		devArr:addLines("-- None")
+		cDev = panel:getProperty("panelMidiInputDevice")
+
+		for i = 0, utils.getMidiInputDevices():size() - 1 do
+			devArr:addLines(utils.getMidiInputDevices():get(i))
+
+			if cDev == utils.getMidiInputDevices():get(i) then
+				devNum = i + 1
+			end
+		end
+
+		getComp("cbInputMIDIDevice"):setProperty("uiComboContent", devArr:joinIntoString("\n", 0, devArr:size()), false)
+		getComp("cbInputMIDIDevice"):setSelectedItemIndex(devNum, true)
+
+		devNum = 0
+
+		-- Output device list
+		devArr:clear()
+		devArr:addLines("-- None")
+		cDev = panel:getProperty("panelMidiOutputDevice")
+
+		for i = 0, utils.getMidiOutputDevices():size() - 1 do
+			devArr:addLines(utils.getMidiOutputDevices():get(i))
+
+			if cDev == utils.getMidiOutputDevices():get(i) then
+				devNum = i + 1
+			end
+		end
+
+		getComp("cbOutputMIDIDevice"):setProperty("uiComboContent", devArr:joinIntoString("\n", 0, devArr:size()), false)
+		getComp("cbOutputMIDIDevice"):setSelectedItemIndex(devNum, true)
+
+		-- Input / output channels
+		setModValue("cbInputMIDIChannel", panel:getPropertyInt("panelMidiInputChannelDevice"))
+		setModValue("cbOutputMIDIChannel", panel:getPropertyInt("panelMidiOutputChannelDevice") - 1)
+
+		showLayer("Settings")
+	else
+		panelSettings.sendProgOnStartup = getModValue("btnSendProgramOnStartup")
+		panelSettings.sendOnProgChange = getModValue("btnSendDataOnProgramChange")
+		panelSettings.continuousPolling = getModValue("btnContinuousPolling")
+		panelSettings.autocheckLCDMode = getModValue("btnAutocheckLCDMode")
+		panelSettings.localMode = getModValue("btnSettingsLocalMode")
+		panelSettings.clockSource = getModValue("cbClockSource")
+		panelSettings.disableWarnings = getModValue("btnDisableWarnings")
+		panelSettings.reqProgOnChange = getModValue("btnRequestDataOnProgramChange")
+
+		-- Start or stop poller now
+		if panelSettings.continuousPolling == 1 then
+			synthPoller()
+		else
+			timer:stopTimer(POLL_TIMER_ID)
+		end
+
+		-- Apply MIDI settings
+		panel:setPropertyString("panelMidiInputDevice", getComp("cbInputMIDIDevice"):getComponentText())
+		panel:setPropertyString("panelMidiOutputDevice", getComp("cbOutputMIDIDevice"):getComponentText())
+		panel:setProperty("panelMidiInputChannelDevice", getModValue("cbInputMIDIChannel"), true)
+		panel:setProperty("panelMidiOutputChannelDevice", getModValue("cbOutputMIDIChannel") + 1, true)
+
+		if panelSettings.selectedSkin ~= getModValue("cbColorScheme") then
+			setColorScheme(getModValue("cbColorScheme"))
+		end
+
+		-- Write global settings
+		saveGlobalSettings()
+
+		externalRepaintInfoWindow()
+		hideLayer("Settings")
+	end
 end
 
 function paintSettingsBG(mod, g)
@@ -1895,6 +2083,43 @@ function setSelectedTimbre(mod, value, source)
 	end
 
 	selectTimbreByValue(selTimbre, false, false)
+end
+
+function showSplitPointNote(mod, value)
+	
+	local octave = math.floor(value / 12) - 1
+	local note = value % 12
+	local noteStr = ""
+
+	if note == 0 then
+		noteStr = "C"
+	elseif note == 1 then
+		noteStr = "C#"
+	elseif note == 2 then
+		noteStr = "D"
+	elseif note == 3 then
+		noteStr = "D#"
+	elseif note == 4 then
+		noteStr = "E"
+	elseif note == 5 then
+		noteStr = "F"
+	elseif note == 6 then
+		noteStr = "F#"
+	elseif note == 7 then
+		noteStr = "G"
+	elseif note == 8 then
+		noteStr = "G#"
+	elseif note == 9 then
+		noteStr = "A"
+	elseif note == 10 then
+		noteStr = "A#"
+	elseif note == 11 then
+		noteStr = "B"
+	end
+
+	noteStr = string.format("%s%d", noteStr, octave)
+
+	getComp("lblTimbreSplitPointValue"):setText(noteStr)
 end
 
 function selectTimbreByValue(selTimbre, muteOutput, noSync)
@@ -2350,6 +2575,13 @@ function paintInfoWindow(mod, g)
 	drawSynthClockIcon(g, iconX + ((iconW + iconSpacer) * 3), iconY)
 end
 
+function showHint(hintMsg)
+	
+	sharedValues.hintMessage = hintMsg
+	externalRepaintHintWindow()
+	showHintTimer()
+end
+
 function externalRepaintInfoWindow()
 
 	getComp("uiInfoScreen"):repaint()
@@ -2384,6 +2616,20 @@ function paintAboutInfo(mod, g)
 	g:setColour(skinColors.customBG)
 	g:drawText("v. " .. panelVersion, 246, 12, 100, 10, Justification(Justification.left), false)
 	g:drawText("RESTART SUGGESTED", 298, 12, 150, 10, Justification(Justification.left), false)
+end
+
+function paintHintWindow(mod, g)
+
+	g:setColour(skinColors.customBG)
+	g:fillAll()
+
+	g:setColour(skinColors.darkText)
+	g:setFont(Font(10, 1))
+
+	local frameW = mod:getWidth()
+
+	-- Show hint
+	g:drawText(sharedValues.hintMessage, 0, 7, mod:getWidth(), 10, Justification(Justification.left), false)
 end
 
 function externalRepaintHintWindow()
@@ -2727,6 +2973,50 @@ function paintSynthSideSelector(mod, g)
 	-- Black keys
 	g:fillRect(kbSX + spc - 2, kbSY, 3, 5)
 	g:fillRect(kbSX + (spc * 2) - 2, kbSY, 3, 5)
+end
+
+function synthSideSelectorClick(comp, event)
+
+	-- Left mouse button - enable / disable synth side control
+	if event.mods:isLeftButtonDown() then
+
+		if panelSettings.selectorsSource == pbsPanel then
+			panelSettings.selectorsSource = pbsSynth
+		else
+			panelSettings.selectorsSource = pbsPanel
+		end
+
+		getComp("uiSynthSideSelector"):repaint()
+	else
+
+		-- Right mouse button - quick select program
+		local popupWin = PopupMenu()
+		local i, j, retVal
+
+		for i = 0, 7 do
+
+			popupWin:addSectionHeader(string.format("Bank %s", bankIDToName(i + 1)))
+			popupWin:addSeparator()
+
+			for j = 0, 15 do
+
+				popupWin:addItem((i * 16) + j + 1, string.format("Program %d", j + 1), true, false)
+			end
+		end
+
+		retVal = popupWin:show(0, 0, 4, 22)
+
+		-- Make sure program was selected. 0 = no selection
+		if retVal ~= 0 then
+
+			retVal = retVal - 1
+
+			sharedValues.synthBank = math.floor(retVal / 16)
+			sharedValues.synthPreset = retVal - (sharedValues.synthBank * 16)
+
+			selectPresetOnSynth()
+		end
+	end
 end
 
 function defaultScheme()
@@ -3321,6 +3611,124 @@ function checkProgramModeEnabled()
 	return modulatorValue 
 end
 
+function processProgramPlayMessage(midiMessage)
+
+	-- Well, I totally forgot that MS2000 do not send sysex data until it's on the Edit Mode
+	-- Most of the controls, placed on the front panel of MS2000, should be processed here
+
+	local mod = midiMessage[2]
+	local value = midiMessage[3]
+
+	-- If control showing something in the LCD mode, then is would be better to set LCD mode
+	local reqLCD = false
+
+	-- Selected timbre number
+	if mod == 0x5F then
+		selectTimbreByValue(bit.band(value, 0x01), true, false)
+	end
+
+	-- Handle values only if synthesizer on the program mode
+	if sharedValues.operationMode == omDefault then
+
+		-- This handling will help to avoid first message miss
+		-- After catching first message the panel will request LCD mode on the synth
+
+		-- OSC1 Waveform
+		if mod == 0x4D then
+			setOsc1WaveformByValue(math.floor(value / 0x12), true)
+		end
+
+		-- OSC2 Waveform
+		if mod == 0x4E then
+			setOsc2WaveformByValue(math.floor(value / 0x3F), true)
+		end
+
+		-- OSC Mod
+		if mod == 0x52 then
+			processOscModData(math.floor(value / 0x2A), true)
+		end
+
+		-- Filter type
+		if mod == 0x53 then
+			if sharedValues.timbreMode == tmSynth then
+				setFilterTypeByValue(math.floor(value / 0x2A), true)
+			else
+				setFilterTypeByValue(math.floor(value / 0x1F), true)
+			end
+		end
+
+		-- EG2 / Gate
+		if mod == 0x56 then
+			setModValue("btnAmpEG2Gate", bit.band(value, 0x01))
+		end
+
+		-- LFO1 Type
+		if mod == 0x57 then
+			setLFO1TypeByValue(math.floor(value / 0x2A), true)
+		end
+
+		-- LFO2 Type
+		if mod == 0x58 then
+			setLFO2TypeByValue(math.floor(value / 0x2A), true)
+		end
+
+		-- Sequence On / Off
+		if mod == 0x59 then
+			setModValue("btnSeqOnOff", bit.band(value, 0x01))
+		end
+
+		-- Distortion
+		if mod == 0x5C then
+			setModValue("btnAmpDistortion", bit.band(value, 0x01))
+		end
+
+		-- Continuous knobs for settings LCD mode
+		if	(mod == 0x12) or	-- OSC2 Semitone
+			(mod == 0x13) or	-- OSC2 Tune
+			(mod == 0x4F) or	-- EG1 Int
+			(mod == 0x05) or	-- Portamento
+			(mod == 0x55) or	-- Filter KBD Track
+			(mod == 0x1C) or	-- Patch 1
+			(mod == 0x1D) or	-- Patch 2
+			(mod == 0x1E) or	-- Patch 3
+			(mod == 0x1F) or	-- Patch 4
+			(mod == 0x0A) then	-- Amp Pan
+
+			reqLCD = true
+		end
+
+		-- NRPN messages handling. Maybe using sysex over NRPN was not that good idea?
+		-- Arpeggios and Virtual patch
+
+		-- NRPN Mod MSB
+		if mod == 0x63 then
+			sharedValues.playMessageTuple[1] = midiMessage[3]
+		end
+
+		-- NRPN Mod LSB
+		if mod == 0x62 then
+			sharedValues.playMessageTuple[2] = midiMessage[3]
+		end
+
+		-- NRPN Mod Value
+		if mod == 0x06 then
+
+			-- Insert second message
+			sharedValues.playMessageTuple[3] = midiMessage[3]
+
+			reqLCD = processPlayMessageTuple()
+
+			-- Reset message tuple variable
+			sharedValues.playMessageTuple = {}
+		end
+
+		-- Continuous controllers will not be handled here
+		if reqLCD then
+			checkLCDModeEnabled()
+		end
+	end
+end
+
 function processPlayMessageTuple()
 
 	-- Current table consists of modulator MSB, LSB and Value
@@ -3400,6 +3808,189 @@ function processPlayMessageTuple()
 	return reqLCD
 end
 
+function copyTimbreToClipboard()
+
+	local i
+	local startByte
+
+	-- Copy timbre mode data into buffer
+	if sharedValues.timbreMode == tmSynth then
+
+		-- Sync data with buffer for using actual values
+		syncTimbreWithBuffer(sharedValues.selectedTimbre)
+
+		startByte = TIMBRE_ONE_STARTBYTE + (TIMBRE_DATA_SIZE * sharedValues.selectedTimbre)
+
+		-- First byte - type of data being copied
+		timbreClipboard = {tmSynth}
+
+		for i = startByte, startByte + TIMBRE_DATA_SIZE do
+
+			table.insert(timbreClipboard, dataBuffer[i])
+		end
+	else
+
+		syncVocoderWithBuffer()
+
+		timbreClipboard = {tmVocoder}
+
+		for i = 1, #vocoderBuffer do
+
+			table.insert(timbreClipboard, vocoderBuffer[i])
+		end
+
+	end
+
+	showHint("Info: Timbre data copied to clipboard")
+
+	repaintTimbreCPButtons()
+end
+
+function copySequenceToClipboard()
+
+	local i
+	local startByte
+
+	-- Copy sequence mode data into buffer
+	if sharedValues.timbreMode == tmSynth then
+
+		-- Sync data with buffer for using actual values
+		syncTimbreWithBuffer(sharedValues.selectedTimbre)
+
+		startByte = TIMBRE_ONE_STARTBYTE + SEQUENCE_STARTBYTE_DISP + (TIMBRE_DATA_SIZE * sharedValues.selectedTimbre)
+
+		-- First byte - type of data being copied
+		seqClipboard = {tmSynth}
+
+		for i = startByte, startByte + SEQUENCE_DATA_SIZE do
+
+			table.insert(seqClipboard, dataBuffer[i])
+		end
+	else
+
+		syncVocoderWithBuffer()
+
+		seqClipboard = {tmVocoder}
+
+		for i = VOCODER_SEQDATA_STARTBYTE, VOCODER_SEQDATA_STARTBYTE + VOCODER_SEQDATA_SIZE - 1 do
+
+			table.insert(seqClipboard, vocoderBuffer[i])
+		end
+	end
+
+	showHint("Info: Sequence data copied to clipboard")
+
+	repaintTimbreCPButtons()
+end
+
+function pasteTimbreFromClipboard()
+
+	local i
+	local c = 2
+	local startByte
+
+	if #timbreClipboard > 0 then
+
+		-- First byte of clipboard - timbre type
+		if timbreClipboard[1] ~= sharedValues.timbreMode then
+
+			genAlertWindow("Warning!", "Incompatible type of data. Vocoder data cannot be applied for synthesizer mode, and vice versa")
+		else
+
+			if not confirmDialog("Warning!", "This will erase corresponded data in the buffer. Proceed?") then
+				return
+			end
+
+			if sharedValues.timbreMode == tmSynth then
+
+				startByte = TIMBRE_ONE_STARTBYTE + (TIMBRE_DATA_SIZE * sharedValues.selectedTimbre)
+
+				-- Apply clipboard data to dataBuffer
+				for i = startByte, startByte + TIMBRE_DATA_SIZE do
+
+					-- Clipboard starts with 2nd byte. First is a clipboard type
+					dataBuffer[i] = timbreClipboard[c]
+
+					c = c + 1
+				end
+
+				applyTimbreData(sharedValues.selectedTimbre, dataBuffer)
+			else
+
+				-- Apply clipboard to vocoderBuffer
+				for i = 2, #timbreClipboard do
+
+					vocoderBuffer[i - 1] = timbreClipboard[i]
+				end
+
+				-- Reapply the same voice mode for the changes to take effect
+				applyVocoderData(vocoderBuffer)
+			end
+
+			-- Reset buffer and repaint buttons
+			timbreClipboard = {}
+			repaintTimbreCPButtons()
+
+			showHint("Info: Timbre data pasted from clipboard")
+		end
+	end
+end
+
+function pasteSequenceFromClipboard()
+
+	local i
+	local c = 2
+	local startByte
+
+	if #seqClipboard > 0 then
+
+		-- First byte of clipboard - timbre type
+		if seqClipboard[1] ~= sharedValues.timbreMode then
+
+			genAlertWindow("Warning!", "Incompatible type of data. Vocoder data cannot be applied for synthesizer mode, and vice versa")
+		else
+
+			if not confirmDialog("Warning!", "This will erase corresponded data in the buffer. Proceed?") then
+				return
+			end
+
+			if sharedValues.timbreMode == tmSynth then
+
+				startByte = TIMBRE_ONE_STARTBYTE + SEQUENCE_STARTBYTE_DISP + (TIMBRE_DATA_SIZE * sharedValues.selectedTimbre)
+
+				-- Apply clipboard data to dataBuffer
+				for i = startByte, startByte + SEQUENCE_DATA_SIZE do
+
+					-- Clipboard starts with 2nd byte. First is a clipboard type
+					dataBuffer[i] = seqClipboard[c]
+
+					c = c + 1
+				end
+
+				applyTimbreData(sharedValues.selectedTimbre, dataBuffer)
+			else
+
+				-- Apply clipboard to vocoderBuffer
+				for i = VOCODER_SEQDATA_STARTBYTE, VOCODER_SEQDATA_STARTBYTE + VOCODER_SEQDATA_SIZE - 1 do
+
+					vocoderBuffer[i] = seqClipboard[c]
+
+					c = c + 1
+				end
+
+				-- Reapply the same voice mode for the changes to take effect
+				applyVocoderData(vocoderBuffer)
+			end
+
+			-- Reset buffer and repaint buttons
+			seqClipboard = {}
+			repaintTimbreCPButtons()
+
+			showHint("Info: Sequence data pasted from clipboard")
+		end
+	end
+end
+
 function assertSeqKnobBounds(mod, selectedMode, source)
 	
 	if blockExecution(source) then
@@ -3450,6 +4041,538 @@ function getSeqStepMaxVal(selectedMode)
 	end
 
 	return {minV, maxV, defV}
+end
+
+function applyProgramData(dataArray, bank, prog, muteOutput)
+
+	-- Here program data will be applied to the panel controls
+
+	-- Sysex header can be safely ignored
+	-- StartByte disposition
+	local programData = copyTable(dataArray)
+	local sb = DATA_PREAMBLE_BYTES + 1
+	local patchType = tmSynth
+	local bSwap
+
+	-- Reset flag to apply all the values no matter what vm was selected before
+	sharedValues.voiceMode = vmUndefined
+	
+	-- Starting from program name
+	local progName = ""
+
+	-- Program name size = 12B
+	progName = progName .. string.char(programData[sb])
+	progName = progName .. string.char(programData[sb + 1])
+	progName = progName .. string.char(programData[sb + 2])
+	progName = progName .. string.char(programData[sb + 3])
+	progName = progName .. string.char(programData[sb + 4])
+	progName = progName .. string.char(programData[sb + 5])
+	progName = progName .. string.char(programData[sb + 6])
+	progName = progName .. string.char(programData[sb + 7])
+	progName = progName .. string.char(programData[sb + 8])
+	progName = progName .. string.char(programData[sb + 9])
+	progName = progName .. string.char(programData[sb + 10])
+	progName = progName .. string.char(programData[sb + 11])
+
+	displayProgramName(progName, bank, prog)
+
+	-- Mute panel MIDI output before changes applied
+	mutePanelOut(true)
+
+	-- Bytes 12~15 not in use
+
+	-- Byte 16 - packed byte
+  	-- Bit 6,7 - Timbre Voice [0~2 = 1+3, 2+2, 3+1]
+	setModValue("cbTimbreVoice", extractPackByte(programData[sb + 16], 6, 7))
+
+	-- Bit 4,5 - Voice Mode [0~3 = Single, Split, Layer(Dual?), Vocoder]
+	-- Processed later
+
+	-- Get patch type
+	if extractPackByte(programData[sb + 16], 4, 5) == 3 then
+		patchType = tmVocoder
+	end
+
+	-- Bit 0-3 - not used
+
+	-- Byte 17 - packed byte
+	-- Bit 4~7 - Scale Key [0~11 = C,C#,D,D#,E,F,F#,G,G#,A,A#,B]
+	setModValue("cbTimbreScaleKey", extractPackByte(programData[sb + 17], 4, 7))
+
+	-- Bit 0~3 - Scale Type [0~9 = Equal Temp~User Scale]
+	setModValue("cbTimbreScaleType", extractPackByte(programData[sb + 17], 0, 3))
+	
+	-- 18 - Split Point [0~127 = C-1~G9]
+	setModValue("knobTimbreSplitPoint", programData[sb + 18])
+
+	-- DELAY FX
+
+	-- Byte 19 - packed byte
+  	-- Bit 7 - Delay tempo sync [0, 1 = Off, On]
+	setModValue("btnDelayTempoSync", extractPackByte(programData[sb + 19], 7))
+
+	-- Bit 4~6 - not use
+	-- Bit 0~3 - Time Base [0~14 = 1/32~1/1]
+	setModValue("cbDelaySyncNote", extractPackByte(programData[sb + 19], 0, 3))
+
+	-- Byte 20 - Delay Time [0~127]
+	setModValue("knobDelayTime", programData[sb + 20])
+
+	-- Byte 21 - Delay Depth [0~127]
+	setModValue("knobDelayFeedback", programData[sb + 21])
+
+	-- Byte 22 - Delay Type [0~2 = StereoDelay, CrossDelay, L/R Delay]
+	setModValue("cbDelayType", programData[sb + 22])
+
+	-- MOD FX
+
+	-- Byte 23 - Mod LFO Speed [0~127]
+	setModValue("knobDelaySpeed", programData[sb + 23])
+
+	-- Byte 24 - Mod Depth [0~127]
+	setModValue("knobDelayDepth", programData[sb + 24])
+
+	-- Byte 25 - Mod Type [0~2 = Cho/Flg, Ensemble, Phaser]
+	setModValue("cbModType", programData[sb + 25])
+
+	-- EQ
+
+	-- Byte 26 - Hi Freq [0~29 = 1.00~18.0 KHz]
+	setModValue("knobEQHighFreq", programData[sb + 26])
+
+	-- Byte 27 - Hi Gain [64+/-12 = 0+/-12]
+	setModValue("knobEQHighGain", programData[sb + 27] - 64)
+
+	-- Byte 28 - Lo Freq [0~29 = 40~1000 Hz]
+	setModValue("knobEQLowFreq", programData[sb + 28])
+
+	-- Byte 29 - Lo Gain [64+/-12 = 0+/-12]
+	setModValue("knobEQLowGain", programData[sb + 29] - 64)
+
+	-- ARPEGGIO
+
+	-- Byte 30 - Tempo (MSB) [20~300]
+	-- Byte 31 - Tempo (LSB)
+	setModValue("knobArpTempo", restoreValueFromLSMS(programData[sb + 30], programData[sb + 31]))
+
+	-- Byte 32
+	-- Bit 7 - Arpeggio On/Off [0, 1 = Off, On]
+	setModValue("btnArpOnOff", extractPackByte(programData[sb + 32], 7))
+
+	-- Bit 6 - Latch [0, 1 = Off, On]
+	setModValue("btnArpLatch", extractPackByte(programData[sb + 32], 6))
+
+	-- Bit 4,5 - Target [0~2 = Both, Timb1, Timb2]
+	setModValue("cbArpTarget", extractPackByte(programData[sb + 32], 4, 5))
+
+	-- Bit 1 - not use
+	-- Bit 0 - Key Sync [0, 1 = Off, On]
+	setModValue("btnArpKeySync", extractPackByte(programData[sb + 32], 0))
+
+	-- Byte 33
+	-- Bit 0~3 - Type [0~5 = Up~Trigger]
+	setModValue("cbArpType", extractPackByte(programData[sb + 33], 0, 3))
+
+	-- Bit 4~7 - Range [0~3 = 1~4 Octave]
+	setModValue("cbArpRange", extractPackByte(programData[sb + 33], 4, 7))
+
+	-- Byte 34 - Gate time [0~100 = 0~100 %]
+	setModValue("knobArpGate", programData[sb + 34])
+
+	-- Byte 35 - Resolution [0~5 = 1/24, 1/16, 1/12, 1/8, 1/6, 1/4]
+	setModValue("cbArpResolution", programData[sb + 35])
+
+	-- Byte 36 - Swing [0+/-100 = 0+/-100 %]
+	bSwap = programData[sb + 36] 
+
+	if bSwap < 0x7F then
+		setModValue("knobArpSwing", bSwap)
+	else
+		setModValue("knobArpSwing", (0xFF - (bSwap - 1)) * -1)
+	end
+
+	-- Byte 37 - (dummy byte)
+
+	-- Init buffers
+	if patchType == tmSynth then
+
+		-- It's a synth patch, init default vocoder buffer
+		placeTimbreDataIntoBuffer(initVocoderBuffer(), 1, dbVocoder, 1)
+
+		-- No need to place data into synth buffer, because it's already there by default
+	else
+
+		-- It's a vocoder. Place synth data into vocoder buffer
+		placeTimbreDataIntoBuffer(programData, TIMBRE_ONE_STARTBYTE, dbVocoder, 1)
+
+		-- Init timbres in the databuffer with default values
+		placeTimbreDataIntoBuffer(initSynthBuffer(), 1, dbSynth, TIMBRE_ONE_STARTBYTE)
+		placeTimbreDataIntoBuffer(initSynthBuffer(), 1, dbSynth, TIMBRE_TWO_STARTBYTE)
+	end
+
+	-- Set voice mode here
+	setModValue("cbTimbreVoiceMode", extractPackByte(programData[sb + 16], 4, 5))
+
+	-- Unmute panel MIDI output to restore functionality
+	mutePanelOut(false)
+
+	-- If sending on program change is enabled, it's better to send data directly into the synth
+	if (panelSettings.sendOnProgChange == 1) and (not muteOutput) then
+		sendSysExMessage(programToMIDIData(programData, DATA_PREAMBLE_BYTES))
+	end
+end
+
+function applyTimbreData(selTimbre, dataArray)
+
+	-- In case this function run on it's own
+	mutePanelOut(true)
+
+	-- Applying timbre data to controllers
+	local sb
+	local i
+	local programData = copyTable(dataArray)
+
+	-- Some cosmetics
+	sharedValues.allowChangeSeq = false
+
+	if selTimbre == 0 then
+		-- First byte of Timbre One data
+		sb = TIMBRE_ONE_STARTBYTE -- 45
+	else
+		-- First byte of Timbre Two data
+		sb = TIMBRE_TWO_STARTBYTE -- 152
+	end
+
+	-- Synth parameter (Mode = Single, Split, Dual)
+	-- Bytes 38~145 - TIMBRE1 DATA
+
+	-- Byte 0 - MIDI ch. [-1, 0~15 = GLB, 1~16 ch]
+	setModValue("cbTimbreMidiCh", bit.band(programData[sb] + 1, 0x7F))
+
+	-- Byte 1 - packed byte
+   	-- Bit 6,7 - Assign Mode [0, 1, 2 = Mono, Poly, Unison]
+	setModValue("cbTimbreAssign", extractPackByte(programData[sb + 1], 6, 7))
+
+	-- Bit 5 - EG2 reset [0, 1 = Off, On]
+	setModValue("btnEG2Reset", extractPackByte(programData[sb + 1], 5))
+
+	-- Bit 4 - EG1 reset [0, 1 = Off, On]
+	setModValue("btnEG1Reset", extractPackByte(programData[sb + 1], 4))
+
+	-- Bit 3 - Trigger Mode [0, 1 = Single, Multi (use Mono / Unison Mode)]
+	setModValue("cbTimbreTrigger", extractPackByte(programData[sb + 1], 3))
+
+	-- Bit 0~1 - Key Priority [0~2 = Last, Low, High]
+	setModValue("cbTimbrePriority", extractPackByte(programData[sb + 1], 0, 1))
+
+	-- Byte 2 - Unison Detune [0~99=0~99 cent (use Unison Mode)]
+	setModValue("knobTimbreDetune", programData[sb + 2])
+
+	-- PITCH
+
+	-- Byte 3 - Tune [64+/-50 = 0+/-50 cent]
+	setModValue("knobTimbreTune", programData[sb + 3] - 64)
+
+	-- Byte 4 - Bend Range [64+/-12 = 0+/-12 note]
+	setModValue("knobTimbreBendRange", programData[sb + 4] - 64)
+
+	-- Byte 5 - Transpose [64+/-24 = 0+/-24 note]
+	setModValue("knobTimbreTranspose", programData[sb + 5] - 64)
+
+	-- Byte 6 - Vibrato Int [64+/-63 = 0+/-63]
+	setModValue("knobTimbreVibrato", programData[sb + 6] - 64)
+
+	-- OSC1
+
+	-- Byte 7 - Wave [0~7 = Saw~Audio In]	
+	setOsc1WaveformByValue(programData[sb + 7], true)
+
+	-- Byte 8 - Waveform CTRL1 [0~127]
+	setModValue("knobOsc1Control1", programData[sb + 8])
+
+	if programData[sb + 7] ~= 5 then -- DWGS not selected
+
+		-- Byte 9 - Waveform CTRL2 [0~127]
+		setModValue("knobOsc1Control2", programData[sb + 9])
+	else
+ 
+		-- Byte 10 - DWGS Wave [0~63 = DWGS No. 1~64 (when OSC1 Wave is "DWGS")]
+		setModValue("knobOsc1Control2", programData[sb + 10])
+	end
+
+	-- Byte 11 - (dummy byte)
+
+	-- OSC2
+
+	-- Byte 12 - packed byte
+  	-- Bit 6,7 - not use
+	-- Bit 4,5 - Mod Select [0~3 = Off, Ring, Sync, RingSync]
+	processOscModData(extractPackByte(programData[sb + 12], 4, 5), true)
+
+	-- Bit 2,3 - not use
+	-- Bit 0,1 - Wave [0~2 = Saw, Squ, Tri]
+	setOsc2WaveformByValue(extractPackByte(programData[sb + 12], 0, 1), true)
+
+	-- Byte 13 - Semitone [64+/-24 = 0+/-24 note]
+	setModValue("knobOsc2Semitone", programData[sb + 13] - 64)
+
+	-- Byte 14 - Tune [64+/-63=0+/-63]
+	setModValue("knobOsc2Tune", programData[sb + 14] - 64)
+
+	-- PITCH (2)
+
+	-- Byte 15 - packed byte
+  	-- Bit B7 - not use
+	-- Bit B0~6 - Portamento Time [0~127]
+	setModValue("knobTimbrePorta", extractPackByte(programData[sb + 15], 0, 6))
+
+	-- MIXER
+
+	-- Byte 16 - OSC1 Level [0~127]
+	setModValue("knobMixerOsc1", programData[sb + 16])
+
+	-- Byte 17 - OSC2 Level [0~127]
+	setModValue("knobMixerOsc2", programData[sb + 17])
+
+	-- Byte 18 - Noise [0~127]
+	setModValue("knobMixerNoise", programData[sb + 18])
+
+	-- FILTER
+
+	-- Byte 19 - Filter Type [0~3 = 24LPF, 12LPF, 12BPF, 12HPF]
+	setFilterTypeByValue(programData[sb + 19], true)
+
+	-- Byte 20 - Filter Cutoff [0~127]
+	setModValue("knobFilterCutoff", programData[sb + 20])
+
+	-- Byte 21 - Filter Resonance [0~127]
+	setModValue("knobFilterResonance", programData[sb + 21])
+
+	-- Byte 22 - Filter EG1 Intensity [64+/-63 = 0+/-63]
+	setModValue("knobFilterEG1Int", programData[sb + 22] - 64)
+
+	-- Byte 23 - Filter Velocity Sense [64+/-63 = 0+/-63]
+	setModValue("knobFilterVeloSens", programData[sb + 23] - 64)
+
+	-- Byte 24 - Filter Keyboard Track [64+/-63 = 0+/-63]
+	setModValue("knobFilterKbdTrk", programData[sb + 24] - 64)
+
+	-- AMP
+
+	-- Byte 25 - Amp Level [0~127]
+	setModValue("knobAmpLevel", programData[sb + 25])
+
+	-- Byte 26 - Amp Panpot [0~64~127 = L64~CNT~R63]
+	setModValue("knobAmpPan", programData[sb + 26] - 64)
+
+	-- Byte 27 - packed byte
+  	-- Bit 7 - not use
+	-- Bit 6 - Amp SW [0, 1 = EG2, Gate]
+	setModValue("btnAmpEG2Gate", extractPackByte(programData[sb + 27], 6))
+
+	-- Bit 1~5 - not use
+	-- Bit 0   | Distortion [0, 1 = Off, On]
+	setModValue("btnAmpDistortion", extractPackByte(programData[sb + 27], 0))
+
+	-- Byte 28 - Velocity Sense [64+/-63 = 0+/-63]
+	setModValue("knobAmpVeloSens", programData[sb + 28] - 64)
+
+	-- Byte 29 - Keyboard Track [64+/-63 = 0+/-63]
+	setModValue("knobAmpKeyTrack", programData[sb + 29] - 64)
+
+	-- EG1
+
+	-- Byte 30 - Attack [0~127]
+	setModValue("knobEG1Attack", programData[sb + 30])
+
+	-- Byte 31 - Decay [0~127]
+	setModValue("knobEG1Decay", programData[sb + 31])
+
+	-- Byte 32 - Sustain [0~127]
+	setModValue("knobEG1Sustain", programData[sb + 32])
+
+	-- Byte 33 - Release [0~127]
+	setModValue("knobEG1Release", programData[sb + 33])
+
+	-- EG2
+
+	-- Byte 34 - Attack [0~127]
+	setModValue("knobEG2Attack", programData[sb + 34])
+
+	-- Byte 35 - Decay [0~127]
+	setModValue("knobEG2Decay", programData[sb + 35])
+
+	-- Byte 36 - Sustain [0~127]
+	setModValue("knobEG2Sustain", programData[sb + 36])
+
+	-- Byte 37 - Release [0~127]
+	setModValue("knobEG2Release", programData[sb + 37])
+
+	-- LFO1
+
+	-- Byte 38 - packed byte
+	-- Bit 6,7 - not use
+	-- Bit 4,5 - Key Sync [0~2 = OFF, Timbre, Voice]
+	setModValue("cbLFO1KeySync", extractPackByte(programData[sb + 38], 4, 5))
+
+	-- Bit 2,3 - not use
+	-- Bit 0,1 - Wave [0~3 = Saw, Squ, Tri, S/H]
+	setLFO1TypeByValue(extractPackByte(programData[sb + 38], 0, 1), true)
+
+	-- Byte 39 - LFO1 Frequency [0~127]
+	setModValue("knobLFO1Frequency", programData[sb + 39])
+
+	-- Byte 40 - packed byte
+  	-- Bit 7 - LFO1 Tempo Sync [0, 1 = Off, On]
+	setModValue("btnLFO1TempoSync", extractPackByte(programData[sb + 40], 7))
+
+	-- Bit 5,6 - not use
+	-- Bit 0~4 - LFO1 Sync Note [0~14 = 1/1~1/32]
+	setModValue("cbLFO1SyncNote", extractPackByte(programData[sb + 40], 0, 4))
+
+	-- LFO2
+
+	-- Byte 41 - packed byte
+  	-- Bit 6,7 - not use
+	-- Bit 4,5 - Key Sync [0~2 = OFF, Timbre, Voice]
+	setModValue("cbLFO2KeySync", extractPackByte(programData[sb + 41], 4, 5))
+
+	-- Bit 2,3 - not use
+	-- Bit 0,1 - Wave [0~3 = Saw, Squ(+), Sin, S/H]
+	setLFO2TypeByValue(extractPackByte(programData[sb + 41], 0, 1), true)
+
+	-- Byte 42 - LFO2 Frequency [0~127]
+	setModValue("knobLFO2Frequency", programData[sb + 42])
+
+	-- Byte 43 - packed byte
+  	-- Bit 7 - LFO2 Tempo Sync [0, 1 = Off, On]
+	setModValue("btnLFO2TempoSync", extractPackByte(programData[sb + 43], 7))
+
+	-- Bit 5,6 - not use
+	-- Bit 0~4 - LFO2 Sync Note [0~14 = 1/1~1/32]
+	setModValue("cbLFO2SyncNote", extractPackByte(programData[sb + 43], 0, 4))
+
+	-- PATCH
+
+	-- Byte 44 - packed byte
+  	-- Bit 4~7 - Patch1 Destination [0~7 = PITCH~LFO2FREQ]
+	setModValue("cbPatchDestination1", extractPackByte(programData[sb + 44], 4, 7))
+
+	-- Bit 0~3 - Patch1 Source [0~7 = EG1~MIDI2]
+	setModValue("cbPatchSource1", extractPackByte(programData[sb + 44], 0, 3))
+
+	-- Byte 45 - Patch1 Intensity [64+/-63 = 0+/-63]
+	setModValue("knobPatch1Amount", programData[sb + 45] - 64)
+
+	-- Byte 46 - packed byte
+  	-- Bit 4~7 - Patch2 Destination [0~7 = PITCH~LFO2FREQ]
+	setModValue("cbPatchDestination2", extractPackByte(programData[sb + 46], 4, 7))
+
+	-- Bit 0~3 - Patch2 Source [0~7 = EG1~MIDI2]
+	setModValue("cbPatchSource2", extractPackByte(programData[sb + 46], 0, 3))
+
+	-- Byte 47 - Patch2 Intensity [64+/-63 = 0+/-63]
+	setModValue("knobPatch2Amount", programData[sb + 47] - 64)
+
+	-- Byte 48 - packed byte
+  	-- Bit 4~7 - Patch3 Destination [0~7=PITCH~LFO2FREQ]
+	setModValue("cbPatchDestination3", extractPackByte(programData[sb + 48], 4, 7))
+
+	-- Bit 0~3 - Patch3 Source [0~7 = EG1~MIDI2]
+	setModValue("cbPatchSource3", extractPackByte(programData[sb + 48], 0, 3))
+
+	-- Byte 49 - Patch3 Intensity [64+/-63 = 0+/-63]
+	setModValue("knobPatch3Amount", programData[sb + 49] - 64)
+
+	-- Byte 50 - packed byte
+  	-- Bit 4~7 - Patch4 Destination [0~7 = PITCH~LFO2FREQ]
+	setModValue("cbPatchDestination4", extractPackByte(programData[sb + 50], 4, 7))
+
+	-- Bit 0~3 - Patch4 Source [0~7 = EG1~MIDI2]
+	setModValue("cbPatchSource4", extractPackByte(programData[sb + 50], 0, 3))
+
+	-- Byte 51 - Patch4 Intensity [64+/-63 = 0+/-63]
+	setModValue("knobPatch4Amount", programData[sb + 51] - 64)
+
+	-- SEQ
+
+	-- Byte 52 - packed byte
+ 	-- Bit 7 - SEQ On/Off [0, 1 = Off, On]
+	setModValue("btnSeqOnOff", extractPackByte(programData[sb + 52], 7))
+
+	-- Bit 6 - SEQ Run Mode [0, 1 = 1Shot, Loop (only Loop when KeySync is "OFF".)]
+	setModValue("cbSeqRunMode", extractPackByte(programData[sb + 52], 6))
+
+	-- Bit 5 - not use
+	-- Bit 0~4 - SEQ Resolution [0~15 = 1/48~1/1]
+	setModValue("cbSeqResolution", extractPackByte(programData[sb + 52], 0, 4))
+
+	-- Byte 53 - packed byte
+  	-- Bit 4~7 - SEQ Last Step [0~15 = 1~16]
+	setModValue("knobSeqLastStep", extractPackByte(programData[sb + 53], 4, 7) + 1)
+
+	-- Bit 2,3 - SEQ Type [0~3 = Fowrd,Reverse,Alt1,Alt2]
+	setModValue("cbSeqType", extractPackByte(programData[sb + 53], 2, 3))
+
+	-- Bit 0,1 - SEQ Key Sync [0~2 = OFF, Timbre,Voice]
+	setModValue("cbSeqKeySync", extractPackByte(programData[sb + 53], 0, 1))
+
+	-- SEQ1 parameter
+	-- Byte 54 - Knob 1 [0~30 = None~Patch4Int]
+	setModValue("cbSeqKnob1", programData[sb + 54])
+
+	-- Byte 55 - packed byte
+	-- Bit 1~7 - not use
+	-- Bit 0 - SEQ1 Motion Type [0, 1 = Smooth, Step]
+	setModValue("cbSeqMotion1", extractPackByte(programData[sb + 55], 0))
+
+	-- Byte 56~71 - SEQ1 Step Value [64+/-63 = 0+/-63]
+	assertSeqKnobBoundsByValue(1, programData[sb + 54])
+
+	for i = 1, 16 do
+		setModValue(string.format("knobSeq1Step%d", i), programData[sb + 55 + i] - 64)
+	end
+
+	-- SEQ2 parameter
+	-- Byte 72 - Knob 2 [0~30 = None~Patch4Int]
+	setModValue("cbSeqKnob2", programData[sb + 72])
+	
+	-- Byte 73 - packed byte
+	-- Bit 1~7 - not use
+	-- Bit 0 - SEQ2 Motion Type [0, 1 = Smooth, Step]
+	setModValue("cbSeqMotion2", extractPackByte(programData[sb + 73], 0))
+
+	-- Byte 74~89 - SEQ2 Step Value [64+/-63 = 0+/-63]
+	assertSeqKnobBoundsByValue(2, programData[sb + 72])
+
+	for i = 1, 16 do
+		setModValue(string.format("knobSeq2Step%d", i), programData[sb + 73 + i] - 64)
+	end
+
+	-- SEQ3 parameter
+	-- Byte 90 - Knob 3 [0~30 = None~Patch4Int]
+	setModValue("cbSeqKnob3", programData[sb + 90])
+	
+	-- Byte 91 - packed byte
+	-- Bit 1~7 - not use
+	-- Bit 0 - SEQ3 Motion Type [0, 1 = Smooth, Step]
+	setModValue("cbSeqMotion3", extractPackByte(programData[sb + 91], 0))
+
+	-- Byte 92~107 - SEQ3 Step Value [64+/-63 = 0+/-63]
+	assertSeqKnobBoundsByValue(3, programData[sb + 90])
+
+	for i = 1, 16 do
+		setModValue(string.format("knobSeq3Step%d", i), programData[sb + 91 + i] - 64)
+	end
+
+	-- Synth parameter (Mode = Split, Dual) - will be applied same actions, but
+	-- start byte will be shifted
+	-- Bytes 146~253 - TIMBRE2 DATA
+
+	-- Select SEQ1 to show
+	selectSequenceByValue(0)
+
+	mutePanelOut(false)
 end
 
 function syncPanelWithBuffer()
@@ -4143,6 +5266,245 @@ function syncTimbreWithBuffer(layerToSync)
 	-- Synth parameter (Mode = Split, Dual) - will be applied same actions, but
 	-- start byte will be shifted
 	-- Bytes 146~253 - TIMBRE2 DATA
+end
+
+function applyVocoderData(dataArray)
+
+	mutePanelOut(true)
+
+	-- Applying vocoder data to controllers
+	local i
+	local programData = copyTable(dataArray)
+
+	-- Some cosmetics
+	sharedValues.allowChangeSeq = false
+
+	-- Vocoder buffer have no extra information
+	local sb = 1
+
+	-- Byte 0 - MIDI ch [-1, 0~15 = GLB, 1~16ch]
+	setModValue("cbTimbreMidiCh", bit.band(programData[sb] + 1, 0x7F))
+
+	-- Byte 1  
+	-- Bit 6,7 - Assign Mode [0, 1, 2 = Mono, Poly, Unison]
+	setModValue("cbTimbreAssign", extractPackByte(programData[sb + 1], 6, 7))
+
+	-- Bit 5 - EG2 reset [0,1 = Off, On]
+	setModValue("btnEG2Reset", extractPackByte(programData[sb + 1], 5))
+
+	-- Bit 4 - EG1 reset [0,1 = Off, On]
+	setModValue("btnEG1Reset", extractPackByte(programData[sb + 1], 4))
+
+	-- Bit 3 - Trigger Mode [0,1 = Single, Multi] (use Mono/Unison Mode)
+	setModValue("cbTimbreTrigger", extractPackByte(programData[sb + 1], 3))
+
+	-- Bit 0~1 - Key Priority [0~2 = Last, Low, High]
+	setModValue("cbTimbrePriority", extractPackByte(programData[sb + 1], 0, 1))
+
+	-- Byte 2 - Unison Detune [0~99 = 0~99 cent] (use Unison Mode)
+	setModValue("knobTimbreDetune", programData[sb + 2])
+
+	-- PITCH
+
+	-- Byte 3 - Tune [64+/-50 = 0+/-50 cent]
+	setModValue("knobTimbreTune", programData[sb + 3] - 64)
+
+	-- Byte 4 - Bend Range [64+/-12 = 0+/-12 note]
+	setModValue("knobTimbreBendRange", programData[sb + 4] - 64)
+
+	-- Byte 5 - Transpose [64+/-24 = 0+/-24 note]
+	setModValue("knobTimbreTranspose", programData[sb + 5] - 64)
+
+	-- Byte 6 - Vibrato Int [64+/-63 = 0+/-63]
+	setModValue("knobTimbreVibrato", programData[sb + 6] - 64)
+
+	-- OSC
+
+	-- Byte 7 - Wave [0~7 = Saw~Audio In]	
+	setOsc1WaveformByValue(programData[sb + 7], true)
+
+	-- Byte 8 - Waveform CTRL1 [0~127]
+	setModValue("knobOsc1Control1", programData[sb + 8])
+
+	if programData[sb + 7] ~= 5 then -- DWGS not selected
+
+		-- Byte 9 - Waveform CTRL2 [0~127]
+		setModValue("knobOsc1Control2", programData[sb + 9])
+	else
+ 
+		-- Byte 10 - DWGS Wave [0~63 = DWGS No. 1~64 (when OSC1 Wave is "DWGS")]
+		setModValue("knobOsc1Control2", programData[sb + 10])
+	end
+
+	-- Byte 11 - (dummy byte)
+
+	-- AUDIO IN2
+
+	-- Byte 12
+	-- Bit 1~7 - not use
+	-- Bit 0 - HPF Gate [0, 1 = Dis, Ena]
+	setModValue("btnAmpEG2Gate", extractPackByte(programData[sb + 12], 0))
+
+	-- Byte 13 - (dummy byte)
+
+	-- PITCH (2)
+
+	-- Byte 14
+	-- Bit 7 - not use [(0)
+	-- Bit 0~6 - Portamento Time [0~127]
+	setModValue("knobTimbrePorta", extractPackByte(programData[sb + 14], 0, 6))
+
+	-- MIXER
+
+	-- Byte 15 - OSC1 Level [0~127]
+	setModValue("knobMixerOsc1", programData[sb + 15])
+
+	-- Byte 16 - Ext1 Level [0~127]
+	setModValue("knobMixerOsc2", programData[sb + 16])
+
+	-- Byte 17 - Noise Level [0~127]
+	setModValue("knobMixerNoise", programData[sb + 17])
+
+	-- AUDIO IN2 (2)
+
+	-- Byte 18 - HPF Level [0~127]
+	setModValue("knobOsc2Semitone", programData[sb + 18])
+
+	-- Byte 19 - Gate Sense [0~127]
+	setModValue("knobFilterVeloSens", programData[sb + 19])
+
+	-- Byte 20 - Threshold [0~127]
+	setModValue("knobOsc2Tune", programData[sb + 20])
+
+	-- FILTER
+
+	-- Byte 21 - Shift [0~4 = 0, +1, +2, -1, -2]
+	setFilterTypeByValue(programData[sb + 21], true)
+
+	-- Byte 22 - Cutoff [64+/-63 = 0+/-63]
+	setModValue("knobFilterCutoff", programData[sb + 22] - 64)
+
+	-- Byte 23 - Resonance [0~127]
+	setModValue("knobFilterResonance", programData[sb + 23])
+
+	-- Byte 24 - Mod Source [0~7 = EG1~MIDI2]
+	setModValue("cbPatchSource1", programData[sb + 24])
+
+	-- Byte 25 - Intensity [64+/-63 = 0+/-63]
+	setModValue("knobFilterEG1Int", programData[sb + 25] - 64)
+
+	-- Byte 26 - E.F.Sense [0~127]
+	setModValue("knobFilterKbdTrk", programData[sb + 26])
+
+	-- AMP
+
+	-- Byte 27 - Level [0~127]
+	setModValue("knobAmpLevel", programData[sb + 27])
+
+	-- Byte 28 - Direct Level [0~127]
+	setModValue("knobAmpPan", programData[sb + 28])
+
+	-- Byte 29
+	-- Bit 1~7 - not use
+	-- Bit 0 - Distortion On/Off [0, 1 = Off, On]
+	setModValue("btnAmpDistortion", extractPackByte(programData[sb + 29], 0))
+
+	-- Byte 30 - Vel.Sense [64+/-63 = 0+/-63]
+	setModValue("knobAmpVeloSens", programData[sb + 30] - 64)
+
+	-- Byte 31 - KeyTrack [64+/-63 = 0+/-63]
+	setModValue("knobAmpKeyTrack", programData[sb + 31] - 64)
+
+	-- EG1
+
+	-- Byte 32 - Attack [0~127]
+	setModValue("knobEG1Attack", programData[sb + 32])
+
+	-- Byte 33 - Decay [0~127]
+	setModValue("knobEG1Decay", programData[sb + 33])
+
+	-- Byte 34 - Sustain [0~127]
+	setModValue("knobEG1Sustain", programData[sb + 34])
+
+	-- Byte 35 - Release [0~127]
+	setModValue("knobEG1Release", programData[sb + 35])
+
+	-- EG2
+
+	-- Byte 36 - Attack [0~127]
+	setModValue("knobEG2Attack", programData[sb + 36])
+
+	-- Byte 37 - Decay [0~127]
+	setModValue("knobEG2Decay", programData[sb + 37])
+
+	-- Byte 38 - Sustain [0~127]
+	setModValue("knobEG2Sustain", programData[sb + 38])
+
+	-- Byte 39 - Release [0~127]
+	setModValue("knobEG2Release", programData[sb + 39])
+
+	-- LFO1
+
+	-- Byte 40
+	-- Bit 6,7 - not use
+	-- Bit 4,5 - Key Sync [0~2 = OFF, Timbre, Voice]
+	setModValue("cbLFO1KeySync", extractPackByte(programData[sb + 40], 4, 5))
+
+	-- Bit 2,3 - not use
+	-- Bit 0,1 - Wave [0~3 = Saw, Squ, Tri, S/H]
+	setLFO1TypeByValue(extractPackByte(programData[sb + 40], 0, 1), true)
+
+	-- Byte 41 - Frequency [0~127]
+	setModValue("knobLFO1Frequency", programData[sb + 41])
+
+	-- Byte 42
+	-- Bit 7 - Tempo Sync [0,1 = Off,On]
+	setModValue("btnLFO1TempoSync", extractPackByte(programData[sb + 42], 7))
+
+	-- Bit 5,6 - not use
+	-- Bit 0~4 - Sync Note [0~14 = 1/1~1/32]
+	setModValue("cbLFO1SyncNote", extractPackByte(programData[sb + 42], 0, 4))
+
+	-- LFO2
+
+	-- Byte 43
+	-- Bit 6,7 - not use
+	-- Bit 4,5 - Key Sync [0~2 = OFF, Timbre, Voice]
+	setModValue("cbLFO2KeySync", extractPackByte(programData[sb + 43], 4, 5))
+
+	-- Bit 2,3 - not use
+	-- Bit 0,1 - Wave [0~3 = Saw, Squ(+), Sin, S/H]
+	setLFO2TypeByValue(extractPackByte(programData[sb + 43], 0, 1), true)
+
+	-- Byte 44 - Frequency [0~127]
+	setModValue("knobLFO2Frequency", programData[sb + 44])
+
+	-- Byte 45
+	-- Bit 7 - Tempo Sync [0, 1 = Off, On]
+	setModValue("btnLFO2TempoSync", extractPackByte(programData[sb + 45], 7))
+
+	-- Bit 5,6 - not use
+	-- Bit 0~4 - Sync Note [0~14 = 1/1~1/32]
+	setModValue("cbLFO2SyncNote", extractPackByte(programData[sb + 45], 0, 4))
+
+	-- CH LEVEL [0]~[15] = CH[1]~[16]
+
+	-- Byte 46~61 - Level [0~15] - 0~127
+	for i = 1, 16 do
+		setModValue(string.format("knobSeq1Step%d", i), programData[sb + 45 + i])
+	end
+
+	-- CH PAN  [0]~[15] = CH[1]~[16]
+
+	-- Byte 62~77 - Pan  [0~15] - 1~64~127 = L63~CNT~R63
+	for i = 1, 16 do
+		setModValue(string.format("knobSeq2Step%d", i), programData[sb + 61 + i] - 64)
+	end
+
+	-- Select SEQ1 to show
+	selectSequenceByValue(0)
+
+	mutePanelOut(false)
 end
 
 function syncVocoderWithBuffer()
@@ -5602,6 +6964,37 @@ function sendBufferedProgramNosync()
 	sendSysExMessage(programToMIDIData(programToSend, DATA_PREAMBLE_BYTES))
 end
 
+function storeSingleProgram()
+
+	-- MS2000 was caught sending wrong current program numbers somteimes (A01) for no reason
+	-- Just make sure that between popup message appeared shown preset will not change
+	local programNumber = sharedValues.synthProgram
+	local midiCh = getGlobalMidiChannel()
+	local progMessage
+
+	-- Sync data before saving
+	syncPanelWithBuffer()
+
+	-- Merge vocoder data if necessary
+	if sharedValues.timbreMode == tmSynth then
+		progMessage = copyTable(dataBuffer)
+	else
+		progMessage = getMergedTimbreVocoderData()
+	end
+
+	progMessage[3] = midiCh
+	progMessage = programToMIDIData(progMessage, DATA_PREAMBLE_BYTES)
+
+	-- Send message into buffer at first
+	sendSysExMessage(progMessage)
+
+	-- Request write program mode
+	sendSysExMessage({0xF0, 0x42, midiCh, 0x58, 0x11, 0x00, programNumber, 0xF7})
+
+	-- Check if program successfully written
+	waitForWriteReply(WAIT_PROGRAM_TIMER)
+end
+
 function storeProgramBank()
 	
 	sendSysExMessage(prepareBulkDump())
@@ -5819,6 +7212,22 @@ function startupCallback()
 
  	runPanelOperations()
 	timer:stopTimer(STARTUP_TIMER_ID)
+end
+
+function showHintTimer()
+
+	timer:stopTimer(HINT_TIMER_ID) 
+
+	timer:setCallback (HINT_TIMER_ID, showHintCallback)
+	timer:startTimer(HINT_TIMER_ID, SHOWHINT_TIMER)
+end
+
+function showHintCallback()
+
+ 	sharedValues.hintMessage = ""
+	externalRepaintHintWindow()
+
+	timer:stopTimer(HINT_TIMER_ID)
 end
 
 function synthPoller()
@@ -6099,6 +7508,144 @@ end
 function requestOperationMode()
 
 	sendSysExMessage({0xF0, 0x42, getGlobalMidiChannel(), 0x58, 0x12, 0xF7})
+end
+
+function setSynthReachStatus(deviceStatus, forceChange)
+	
+	local force = false
+
+	if forceChange ~= nil then
+		force = forceChange
+	end
+
+	if (sharedValues.deviceStatus == dsBusy) and (force == false) then
+
+		-- Ignore poller data while synth is busy
+		return
+	end
+
+	-- Prevent going offline if the synth is responded
+	if deviceStatus == dsOnline then
+		sharedValues.reachStatus = 1
+	end
+
+	if sharedValues.deviceStatus ~= deviceStatus then
+		
+		if deviceStatus == dsBusy then
+			showHint("Info: Synthesizer is busy")
+		elseif deviceStatus == dsError then
+			showHint("Info: Synthesizer is not responding")
+		end
+
+		sharedValues.deviceStatus = deviceStatus
+		externalRepaintInfoWindow()
+	end
+end
+
+function writeOKReply()
+
+	if timerFlags.waitForWriteReply == true then
+
+		timer:stopTimer(WAITFORWRITE_REPLY_ID)
+		timerFlags.waitForWriteReply = false
+
+		setSynthReachStatus(dsOnline, true)
+		showHint("Info: Operation completed successfuly")
+	end
+end
+
+function writeErrorReply()
+
+	if timerFlags.waitForWriteReply == true then
+
+		timer:stopTimer(WAITFORWRITE_REPLY_ID)
+		timerFlags.waitForWriteReply = false
+
+		setSynthReachStatus(dsError, false)
+		showHint("Info: Last operation was not completed")
+	end
+end
+
+function captureProgramDumpData(programData)
+
+	timerFlags.waitForSingleProgram	= false
+	setSynthReachStatus(dsOnline, true)
+
+	if programData:getSize() == SINGLE_PROGRAM_SIZE then
+
+		local rawDumpBytesData = normalizeSysExDumpData(memBlockToTable(programData))
+
+		dataBuffer = midiToProgramData(rawDumpBytesData, DATA_PREAMBLE_BYTES)
+
+		applyProgramData(dataBuffer, nil, nil, true)
+
+		showHint("Info: Program dump received")
+	else
+		setSynthReachStatus(dsError)
+		showHint("Info: Error during program data transmission")
+	end
+end
+
+function captureBulkDumpData(programData)
+
+	timerFlags.waitForBulkDump = false
+	setSynthReachStatus(dsOnline, true)
+
+	if (programData:getSize() == PROGRAM_BANK_DUMP_SIZE) or (programData:getSize() == ALL_DATA_DUMP_SIZE) then
+
+		local rawDumpBytesData = normalizeSysExDumpData(memBlockToTable(programData))
+
+		presetBank = slicePresets(midiToProgramData(rawDumpBytesData, DATA_PREAMBLE_BYTES))
+		dataBuffer = copyTable(presetBank[1][1])
+		chosenPresetToBuffer(101, true)
+
+		showHint("Info: SysEx bulk dump received")
+	else
+
+		setSynthReachStatus(dsError)
+		showHint("Info: Error during program data transmission")
+	end
+end
+
+function captureGlobalSettings(globalData)
+
+	setSynthReachStatus(dsOnline, true)
+	
+	if globalData:getSize() == GLOBAL_DATA_SIZE then
+
+		local rawDumpBytesData = midiToProgramData(memBlockToTable(globalData), DATA_PREAMBLE_BYTES)
+		local sb = DATA_PREAMBLE_BYTES + 1
+
+		if sharedValues.applySettingsOnCatch == true then
+
+			-- Byte 5 Bit 2 - Local Ctrl [0, 1 = Off, On]
+			rawDumpBytesData[sb + 5] = packBitsToByte(rawDumpBytesData[sb + 5], getModValue("btnSettingsLocalMode"), 2) --panelSettings.localMode
+
+			-- Byte 8 Bits 0~1 - Clock [0~2 = Internal, External, Auto]
+			rawDumpBytesData[sb + 8] = packBitsToByte(rawDumpBytesData[sb + 8], getModValue("cbClockSource"), 0, 1)
+
+			-- Transmit patched settings
+			sendSysExMessage(programToMIDIData(rawDumpBytesData, DATA_PREAMBLE_BYTES))
+
+		elseif timerFlags.waitForSettings == true then
+
+			-- Extract data that need
+			panelSettings.localMode = extractPackByte(rawDumpBytesData[sb + 5], 2)
+			panelSettings.clockSource = extractPackByte(rawDumpBytesData[sb + 8], 0, 1)
+
+			setModValue("btnSettingsLocalMode", panelSettings.localMode)
+			setModValue("cbClockSource", panelSettings.clockSource)
+
+			externalRepaintInfoWindow()
+		end
+	else
+
+		setSynthReachStatus(dsError)
+		showHint("Info: Error during global settings transmission")
+	end
+
+	timerFlags.waitForSettings = false
+	sharedValues.applySettingsOnCatch = false
 end
 
 function captureProgramChangeMessage(msgData)
