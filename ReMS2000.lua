@@ -1915,7 +1915,7 @@ function paintSequencer(comp, g)
 
 	g:setOpacity(1)
 end
-                       "
+                       
 function lampFiring(mod, value, source)
 
 	if blockExecution(source) then
