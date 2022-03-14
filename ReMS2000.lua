@@ -4,38 +4,38 @@ function setGlobalVars()
 
 	sharedValues = {}
 
-	sharedValues.selectedPreset			= 1				-- Selected program on the panel
-	sharedValues.selectedBank 			= 1 			-- Selected bank on the panel
-	sharedValues.synthPreset			= 0 			-- Selected program on the MS2000
-	sharedValues.synthBank 				= 0 			-- Selected bank on the MS2000
-	sharedValues.synthProgram			= 0 			-- Calculated synth program number (bank + preset) for writing
+	sharedValues.selectedPreset		= 1			-- Selected program on the panel
+	sharedValues.selectedBank 		= 1 			-- Selected bank on the panel
+	sharedValues.synthPreset		= 0 			-- Selected program on the MS2000
+	sharedValues.synthBank 			= 0 			-- Selected bank on the MS2000
+	sharedValues.synthProgram		= 0 			-- Calculated synth program number (bank + preset) for writing
 	sharedValues.selectedTimbre 		= 0
 	sharedValues.selectedSequence		= 0
-	sharedValues.midiActivity			= 0 			-- Midi activity flag for blinking the indicator
-	sharedValues.reachStatus			= 0			
-	sharedValues.timbreMode 			= tmSynth		-- Current global mode - synthesizer / vocoder
-	sharedValues.voiceMode				= vmUndefined	-- More specific mode description
-	sharedValues.deviceStatus 			= dsOffline		-- Device status according to the panel
-	sharedValues.operationMode			= omDefault		-- Synthesizer operation mode (Program, Edit, Global)
-	sharedValues.hintMessage			= ""
-	sharedValues.saveToRamEnabled		= 0				-- Flag to show if preset belong or not to specific program of the bank
-	sharedValues.allowChangeSeq			= false			-- Flag to prevent auto sequence changing			
+	sharedValues.midiActivity		= 0 			-- Midi activity flag for blinking the indicator
+	sharedValues.reachStatus		= 0			
+	sharedValues.timbreMode 		= tmSynth		-- Current global mode - synthesizer / vocoder
+	sharedValues.voiceMode			= vmUndefined		-- More specific mode description
+	sharedValues.deviceStatus 		= dsOffline		-- Device status according to the panel
+	sharedValues.operationMode		= omDefault		-- Synthesizer operation mode (Program, Edit, Global)
+	sharedValues.hintMessage		= ""
+	sharedValues.saveToRamEnabled		= 0			-- Flag to show if preset belong or not to specific program of the bank
+	sharedValues.allowChangeSeq		= false			-- Flag to prevent auto sequence changing			
 	sharedValues.isSequencerDragging	= false
 	sharedValues.sequencerStartY		= 0
-	sharedValues.sequencerKnob			= 0				-- Knob to be affected by sequencer dragging
-	sharedValues.sequencerKnobValue		= 0				-- Value at the moment of drag begins
+	sharedValues.sequencerKnob		= 0			-- Knob to be affected by sequencer dragging
+	sharedValues.sequencerKnobValue		= 0			-- Value at the moment of drag begins
 	sharedValues.applySettingsOnCatch	= false			-- Required for settings merging routine
 	sharedValues.ignoreSettingsButton	= true			-- Workaround for strange behaviour when settings page was not closed before saving state
-	sharedValues.customBGColor			= SEQ_BACKGROUND
+	sharedValues.customBGColor		= SEQ_BACKGROUND
 	sharedValues.playMessageTuple		= {}			-- Program Play mode can send 3 messages in a row, but Ctrlr do not recognize them as multimessage
-	sharedValues.resetDWGS				= true			-- Flag to process OSC1 Control2 bounds and formula
+	sharedValues.resetDWGS			= true			-- Flag to process OSC1 Control2 bounds and formula
 	sharedValues.restartRequired		= false			-- Flag to indicate if panel restart is required
 
 	-- SysEx formula templates for non-visual components, will be overriden in certain methods
 	sharedValues.osc1SEValues 	= {0xF0, 0x42, 0x00, 0x58, 0x41, 0x49, 0x00, 0x00, 0x00, 0xF7}
 	sharedValues.osc2SEValues 	= {0xF0, 0x42, 0x00, 0x58, 0x41, 0x4D, 0x00, 0x00, 0x00, 0xF7}
-	sharedValues.oscModSEValues = {0xF0, 0x42, 0x00, 0x58, 0x41, 0x4E, 0x00, 0x00, 0x00, 0xF7}
-	sharedValues.filterSEValues = {0xF0, 0x42, 0x00, 0x58, 0x41, 0x54, 0x00, 0x00, 0x00, 0xF7}
+	sharedValues.oscModSEValues 	= {0xF0, 0x42, 0x00, 0x58, 0x41, 0x4E, 0x00, 0x00, 0x00, 0xF7}
+	sharedValues.filterSEValues 	= {0xF0, 0x42, 0x00, 0x58, 0x41, 0x54, 0x00, 0x00, 0x00, 0xF7}
 	sharedValues.LFO1SEValues 	= {0xF0, 0x42, 0x00, 0x58, 0x41, 0x68, 0x00, 0x00, 0x00, 0xF7}
 	sharedValues.LFO2SEValues 	= {0xF0, 0x42, 0x00, 0x58, 0x41, 0x6D, 0x00, 0x00, 0x00, 0xF7}
 
@@ -46,11 +46,11 @@ function setGlobalVars()
 	panelSettings.reqProgOnChange	= 0	-- Request program on change synthesizer's program number
 	panelSettings.autocheckLCDMode	= 0	-- Force LCD mode on every poll cycle
 	panelSettings.disableWarnings	= 0	-- Disable all warning dialogs. Might be dangerous
-	panelSettings.clockSource		= 2
-	panelSettings.localMode			= 1
+	panelSettings.clockSource	= 2
+	panelSettings.localMode		= 1
 	panelSettings.continuousPolling	= 1
 	panelSettings.selectorsSource	= pbsPanel	-- Flag to recognize where to cycle program - on the panel, or on the synthesizer side
-	panelSettings.selectedSkin		= csDefault
+	panelSettings.selectedSkin	= csDefault
 
 	-- Skin colors
 	skinColors = {}
@@ -64,8 +64,8 @@ function setGlobalVars()
 	-- Flags to indicate if some kind of data is expected or not
 	-- Data that not expected will be ignored on input
 	timerFlags.waitForSingleProgram	= false
-	timerFlags.waitForBulkDump		= false
-	timerFlags.waitForSettings		= false
+	timerFlags.waitForBulkDump	= false
+	timerFlags.waitForSettings	= false
 	timerFlags.waitForWriteReply	= false
 
 	-- Patch bank
@@ -94,34 +94,34 @@ function setGlobalConstants()
 
 	-- LCD
 	LCD_BASE		= Colour(0xFF333333)
-	LCD_BACKLIGHT  	= Colour(0xFFc4e283)
+	LCD_BACKLIGHT  		= Colour(0xFFc4e283)
 	LCD_DIGITS 	   	= Colour(0xFFb5ca87)
 	LCD_TEXT		= Colour(0xFF202020)
-	LCD_GLOW_START 	= Colour(0x25FFFFFF)
-	LCD_GLOW_END   	= Colour(0x00FFFFFF)
+	LCD_GLOW_START 		= Colour(0x25FFFFFF)
+	LCD_GLOW_END   		= Colour(0x00FFFFFF)
 
 	-- Icons
-	ICON_ORANGE	= Colour(0xFFC6A34E)
-	ICON_GREEN	= Colour(0xFF66BB66)
-	ICON_RED	= Colour(0xFFDD6666)
+	ICON_ORANGE		= Colour(0xFFC6A34E)
+	ICON_GREEN		= Colour(0xFF66BB66)
+	ICON_RED		= Colour(0xFFDD6666)
 
 	-- Drawing colors
-	COLOR_SURFACE_LINE		= Colour(0xFFBABABA)
+	COLOR_SURFACE_LINE	= Colour(0xFFBABABA)
 	COLOR_SURFACE_LINE_DARK	= Colour(0xFF9A9A9A) 
-	COLOR_GREY_TEXT			= Colour(0xFF9A9A9A)
-	COLOR_TRANSPARENT		= Colour(0x00000000)
-	COLOR_PANEL_BG			= Colour(0xFF334657)
-	COLOR_SETUP_BG			= Colour(0xFA334657)
-	COLOR_PANEL_BG_BLK		= Colour(0xFF353535)
-	COLOR_SETUP_BG_BLK		= Colour(0xFA353535)
-	COLOR_VOCODER_LABEL		= Colour(0xFFAAAAAA)
-	COLOR_COMBO_TEXT		= Colour(0xFFA6914F)
-	COLOR_BUFFER_COPY		= Colour(0xFFA6524A)
-	COLOR_BUFFER_COPY_V		= Colour(0xFF4A85A6)
-	COLOR_BUFFER_TEXT		= Colour(0xFFFAFAFA)
+	COLOR_GREY_TEXT		= Colour(0xFF9A9A9A)
+	COLOR_TRANSPARENT	= Colour(0x00000000)
+	COLOR_PANEL_BG		= Colour(0xFF334657)
+	COLOR_SETUP_BG		= Colour(0xFA334657)
+	COLOR_PANEL_BG_BLK	= Colour(0xFF353535)
+	COLOR_SETUP_BG_BLK	= Colour(0xFA353535)
+	COLOR_VOCODER_LABEL	= Colour(0xFFAAAAAA)
+	COLOR_COMBO_TEXT	= Colour(0xFFA6914F)
+	COLOR_BUFFER_COPY	= Colour(0xFFA6524A)
+	COLOR_BUFFER_COPY_V	= Colour(0xFF4A85A6)
+	COLOR_BUFFER_TEXT	= Colour(0xFFFAFAFA)
 	COLOR_BUFFER_TEXT_EMPTY	= Colour(0xFFBABABA)
-	COLOR_EMERGENCY			= Colour(0xFF993333)
-	COLOR_SEQ_BG_BLACK		= Colour(0xFF1A2024)
+	COLOR_EMERGENCY		= Colour(0xFF993333)
+	COLOR_SEQ_BG_BLACK	= Colour(0xFF1A2024)
 	COLOR_GROUPBOX_OUTLINE	= Colour(0xFFA3A3A3)
 	COLOR_GROUPBOX_LABEL	= Colour(0xFFBABABA)
 
@@ -170,7 +170,7 @@ function setGlobalConstants()
 	csJP8080	= 3
 
 	-- Supported file extensions
-	SUPPORTED_EXT_MASK		= "*.syx;*.mid"
+	SUPPORTED_EXT_MASK	= "*.syx;*.mid"
 	SUPPORTED_EXT_MASK_ALT	= "*.syx;*.mid;*.prg"
 
 	-- Bank \ program selection source
@@ -178,30 +178,30 @@ function setGlobalConstants()
 	pbsSynth	= 1
 
 	-- Program data values
-	DATA_PREAMBLE_BYTES		= 5		-- SysEx header
-	COMMON_DATA_SIZE		= 38	-- Shared values for both timbres
+	DATA_PREAMBLE_BYTES	= 5	-- SysEx header
+	COMMON_DATA_SIZE	= 38	-- Shared values for both timbres
 
 	-- Dump size values
 	-- Raw MIDI data
-	SINGLE_PROGRAM_SIZE		= 297	-- (291 + 5 bytes SysEx header + F7)
-	GLOBAL_DATA_SIZE		= 235	-- (229 + SysEx data)
+	SINGLE_PROGRAM_SIZE	= 297	-- (291 + 5 bytes SysEx header + F7)
+	GLOBAL_DATA_SIZE	= 235	-- (229 + SysEx data)
 	PROGRAM_BANK_DUMP_SIZE	= 37163	-- (37157 + SysEx data)
-	ALL_DATA_DUMP_SIZE		= 37392 -- (37386 + SysEx data)
+	ALL_DATA_DUMP_SIZE	= 37392 -- (37386 + SysEx data)
 	MKSINGLE_PROGRAM_SIZE	= SINGLE_PROGRAM_SIZE + 2 --(MicroKorg program size)
 
 	-- Special cases
-	HANDSON_DUMP_SIZE		= 37395
+	HANDSON_DUMP_SIZE	= 37395
 
 	-- MIDI-to-Program converted data size
 	SINGLE_PROGRAM_INT_SIZE = 254	
 
-	TIMBRE_DATA_SIZE		= 108
+	TIMBRE_DATA_SIZE	= 108
 	TIMBRE_ONE_STARTBYTE	= DATA_PREAMBLE_BYTES + COMMON_DATA_SIZE + 1
 	TIMBRE_TWO_STARTBYTE	= TIMBRE_ONE_STARTBYTE + TIMBRE_DATA_SIZE
 
 	-- Buffer copy values
 	SEQUENCE_STARTBYTE_DISP		= 53
-	SEQUENCE_DATA_SIZE			= 55
+	SEQUENCE_DATA_SIZE		= 55
 	VOCODER_SEQDATA_STARTBYTE	= 47
 	VOCODER_SEQDATA_SIZE		= 32
 
@@ -216,8 +216,8 @@ function setGlobalConstants()
 	-- Vocoder values
 	OSC1_WAVEFORM_VCD_DISP	= 8
 	FILTER_TYPE_VCD_DISP	= 22
-	LFO1_TYPE_VCD_DISP		= 41
-	LFO2_TYPE_VCD_DISP		= 44
+	LFO1_TYPE_VCD_DISP	= 41
+	LFO2_TYPE_VCD_DISP	= 44
 
 	SYSEX_VAL_DIFF		= 272	-- Difference between modulator numbers on different layers
 	SYSEX_VAL_DIFF_ALT	= 400
@@ -230,20 +230,20 @@ function setGlobalConstants()
 
 	-- PopUp result values
 	prOpenProgram		= 1
-	prOpenDump			= 2
+	prOpenDump		= 2
 	prSaveProgram		= 10
-	prSaveDump			= 11
-	prSaveToRAM			= 12
+	prSaveDump		= 11
+	prSaveToRAM		= 12
 	prRenameProgram		= 15
 	prInitProgram		= 20
-	prInitBank			= 21
+	prInitBank		= 21
 	prRequestProgram	= 30
 	prWriteProgram		= 31
 	prRequestSysexDump	= 40
 	prWriteSysexDump	= 41
 
 	-- Timer values
-	POLL_TIMER			= 10000	-- Constant synth availability polling
+	POLL_TIMER		= 10000	-- Constant synth availability polling
 	SHOWHINT_TIMER		= 15000	-- How long hint will be shown
 	STARTUP_TIMER		= 250	-- Delay before applying all startup data
 	BLINKMIDI_TIMER		= 75	-- How long midi indicator shown
@@ -253,14 +253,14 @@ function setGlobalConstants()
 	WAITFORSET_TIMER	= 3000	-- Timeout for synth settings request
 	DELAY_PROG_REQUEST	= 300	-- Delay before run request
 
-	STARTUP_TIMER_ID		= 1
-	HINT_TIMER_ID			= 10
-	POLL_TIMER_ID			= 20
-	BLINKMIDI_TIMER_ID		= 30
+	STARTUP_TIMER_ID	= 1
+	HINT_TIMER_ID		= 10
+	POLL_TIMER_ID		= 20
+	BLINKMIDI_TIMER_ID	= 30
 	WAIT_PROGRAM_TIMER_ID	= 40
-	WAIT_BANK_TIMER_ID		= 41
-	POLLSTATE_TIMER_ID		= 50
-	WAITFORSET_TIMER_ID		= 80
+	WAIT_BANK_TIMER_ID	= 41
+	POLLSTATE_TIMER_ID	= 50
+	WAITFORSET_TIMER_ID	= 80
 	DELAY_PROG_REQUEST_ID	= 90
 	WAITFORWRITE_REPLY_ID	= 100 -- Will indicate if write ok reply was or was not received
 
@@ -3024,13 +3024,13 @@ function defaultScheme()
 	-- Default (blue) color scheme
 
 	-- Background
-	skinColors.panelBG			= COLOR_PANEL_BG
-	skinColors.customBG			= SEQ_BACKGROUND
+	skinColors.panelBG		= COLOR_PANEL_BG
+	skinColors.customBG		= SEQ_BACKGROUND
 	skinColors.customBGAlter	= SEQ_BG_ALTER
 
 	-- Text
 	skinColors.labelTextColor	= COLOR_SURFACE_LINE
-	skinColors.darkText			= COLOR_GREY_TEXT
+	skinColors.darkText		= COLOR_GREY_TEXT
 	skinColors.comboText		= COLOR_COMBO_TEXT
 
 	-- Label
@@ -3049,24 +3049,24 @@ function defaultScheme()
 	skinColors.seqOpacityMinus	= 0
 
 	-- Copy / Paste buttons
-	skinColors.copyTimbreData		= COLOR_BUFFER_COPY
-	skinColors.copyVocoderData		= COLOR_BUFFER_COPY_V
-	skinColors.copyColorText		= COLOR_BUFFER_TEXT
+	skinColors.copyTimbreData	= COLOR_BUFFER_COPY
+	skinColors.copyVocoderData	= COLOR_BUFFER_COPY_V
+	skinColors.copyColorText	= COLOR_BUFFER_TEXT
 	skinColors.copyColorTextEmpty	= COLOR_BUFFER_TEXT_EMPTY
 
 	-- LCD
 	skinColors.LCDBacklight		= LCD_BACKLIGHT
 	skinColors.LCDDigits		= LCD_DIGITS
-	skinColors.LCDText			= LCD_TEXT
+	skinColors.LCDText		= LCD_TEXT
 
 	-- Group box
-	skinColors.groupBoxBG				= skinColors.panelBG
-	skinColors.groupBoxMainWin			= skinColors.panelBG
-	skinColors.groupBoxOutline			= COLOR_GROUPBOX_OUTLINE
+	skinColors.groupBoxBG			= skinColors.panelBG
+	skinColors.groupBoxMainWin		= skinColors.panelBG
+	skinColors.groupBoxOutline		= COLOR_GROUPBOX_OUTLINE
 	skinColors.groupBoxOutlineMainWin	= skinColors.groupBoxOutline
-	skinColors.groupBoxLabel			= COLOR_GROUPBOX_LABEL
+	skinColors.groupBoxLabel		= COLOR_GROUPBOX_LABEL
 	skinColors.groupBoxLabelMainWin		= skinColors.groupBoxLabel
-	skinColors.groupBoxRounding			= 0
+	skinColors.groupBoxRounding		= 0
 
 	-- Settings layer
 	skinColors.settingsAlpha	= 0.99
@@ -3077,13 +3077,13 @@ function blackScheme()
 	-- Default (blue) color scheme
 
 	-- Background
-	skinColors.panelBG			= COLOR_PANEL_BG_BLK
-	skinColors.customBG			= COLOR_SEQ_BG_BLACK
+	skinColors.panelBG		= COLOR_PANEL_BG_BLK
+	skinColors.customBG		= COLOR_SEQ_BG_BLACK
 	skinColors.customBGAlter	= SEQ_BG_ALTER_BLACK
 
 	-- Text
 	skinColors.labelTextColor	= COLOR_SURFACE_LINE
-	skinColors.darkText			= COLOR_GREY_TEXT
+	skinColors.darkText		= COLOR_GREY_TEXT
 	skinColors.comboText		= COLOR_COMBO_TEXT
 
 	-- Label
@@ -3102,24 +3102,24 @@ function blackScheme()
 	skinColors.seqOpacityMinus	= 0.1
 
 	-- Copy / Paste buttons
-	skinColors.copyTimbreData		= COLOR_BUFFER_COPY
-	skinColors.copyVocoderData		= COLOR_BUFFER_COPY_V
-	skinColors.copyColorText		= COLOR_BUFFER_TEXT
+	skinColors.copyTimbreData	= COLOR_BUFFER_COPY
+	skinColors.copyVocoderData	= COLOR_BUFFER_COPY_V
+	skinColors.copyColorText	= COLOR_BUFFER_TEXT
 	skinColors.copyColorTextEmpty	= COLOR_SURFACE_LINE
 
 	-- LCD
 	skinColors.LCDBacklight		= LCD_BACKLIGHT
 	skinColors.LCDDigits		= LCD_DIGITS
-	skinColors.LCDText			= LCD_TEXT
+	skinColors.LCDText		= LCD_TEXT
 
 	-- Group box
-	skinColors.groupBoxBG				= skinColors.panelBG
-	skinColors.groupBoxMainWin			= skinColors.panelBG
-	skinColors.groupBoxOutline			= COLOR_GROUPBOX_OUTLINE
+	skinColors.groupBoxBG			= skinColors.panelBG
+	skinColors.groupBoxMainWin		= skinColors.panelBG
+	skinColors.groupBoxOutline		= COLOR_GROUPBOX_OUTLINE
 	skinColors.groupBoxOutlineMainWin	= skinColors.groupBoxOutline
-	skinColors.groupBoxLabel			= COLOR_GROUPBOX_LABEL
+	skinColors.groupBoxLabel		= COLOR_GROUPBOX_LABEL
 	skinColors.groupBoxLabelMainWin		= skinColors.groupBoxLabel
-	skinColors.groupBoxRounding			= 0
+	skinColors.groupBoxRounding		= 0
 
 	-- Settings layer
 	skinColors.settingsAlpha	= 0.99
@@ -3130,13 +3130,13 @@ function nordScheme()
 	-- Yet another theme
 
 	-- Background
-	skinColors.panelBG			= Colour(0xFF64262c)
-	skinColors.customBG			= Colour(0xFF26262e)
+	skinColors.panelBG		= Colour(0xFF64262c)
+	skinColors.customBG		= Colour(0xFF26262e)
 	skinColors.customBGAlter	= SEQ_BG_ALTER
 
 	-- Text
 	skinColors.labelTextColor	= Colour(0xFFd9def1)
-	skinColors.darkText			= COLOR_GREY_TEXT
+	skinColors.darkText		= COLOR_GREY_TEXT
 	skinColors.comboText		= Colour(0xFFd9def1)
 
 	-- Label
@@ -3155,24 +3155,24 @@ function nordScheme()
 	skinColors.seqOpacityMinus	= 0.1
 
 	-- Copy / Paste buttons
-	skinColors.copyTimbreData		= skinColors.panelBG
-	skinColors.copyVocoderData		= COLOR_BUFFER_COPY_V
-	skinColors.copyColorText		= COLOR_BUFFER_TEXT
+	skinColors.copyTimbreData	= skinColors.panelBG
+	skinColors.copyVocoderData	= COLOR_BUFFER_COPY_V
+	skinColors.copyColorText	= COLOR_BUFFER_TEXT
 	skinColors.copyColorTextEmpty	= COLOR_BUFFER_TEXT
 
 	-- LCD
 	skinColors.LCDBacklight		= LCD_BACKLIGHT
 	skinColors.LCDDigits		= LCD_DIGITS
-	skinColors.LCDText			= LCD_TEXT
+	skinColors.LCDText		= LCD_TEXT
 
 	-- Group box
-	skinColors.groupBoxBG				= Colour(0xFF3e3e46)
-	skinColors.groupBoxMainWin			= skinColors.customBG
-	skinColors.groupBoxOutline			= skinColors.lineColorDark
+	skinColors.groupBoxBG			= Colour(0xFF3e3e46)
+	skinColors.groupBoxMainWin		= skinColors.customBG
+	skinColors.groupBoxOutline		= skinColors.lineColorDark
 	skinColors.groupBoxOutlineMainWin	= skinColors.groupBoxOutline
-	skinColors.groupBoxLabel			= Colour(0xFFd9def1)
+	skinColors.groupBoxLabel		= Colour(0xFFd9def1)
 	skinColors.groupBoxLabelMainWin		= skinColors.groupBoxLabel
-	skinColors.groupBoxRounding			= 2
+	skinColors.groupBoxRounding		= 2
 
 	-- Settings layer
 	skinColors.settingsAlpha	= 0.99
@@ -3183,13 +3183,13 @@ function jp8080Scheme()
 	-- Roland JP8080-like scheme
 
 	-- Background
-	skinColors.panelBG			= Colour(0xFF435a82)
-	skinColors.customBG			= Colour(0xFF0a1519)
+	skinColors.panelBG		= Colour(0xFF435a82)
+	skinColors.customBG		= Colour(0xFF0a1519)
 	skinColors.customBGAlter	= Colour(0xFF0e1a1e)
 
 	-- Text
 	skinColors.labelTextColor	= Colour(0xFFdce8e8)
-	skinColors.darkText			= Colour(0xFFd2d6d6)
+	skinColors.darkText		= Colour(0xFFd2d6d6)
 	skinColors.comboText		= Colour(0xFFdca358)
 
 	-- Label
@@ -3208,24 +3208,24 @@ function jp8080Scheme()
 	skinColors.seqOpacityMinus	= 0
 
 	-- Copy / Paste buttons
-	skinColors.copyTimbreData		= COLOR_BUFFER_COPY
-	skinColors.copyVocoderData		= COLOR_BUFFER_COPY_V
-	skinColors.copyColorText		= COLOR_BUFFER_TEXT
+	skinColors.copyTimbreData	= COLOR_BUFFER_COPY
+	skinColors.copyVocoderData	= COLOR_BUFFER_COPY_V
+	skinColors.copyColorText	= COLOR_BUFFER_TEXT
 	skinColors.copyColorTextEmpty	= COLOR_BUFFER_TEXT_EMPTY
 
 	-- LCD
 	skinColors.LCDBacklight		= LCD_BACKLIGHT
 	skinColors.LCDDigits		= LCD_DIGITS
-	skinColors.LCDText			= LCD_TEXT
+	skinColors.LCDText		= LCD_TEXT
 
 	-- Group box
-	skinColors.groupBoxBG				= Colour(0xFF1a2529)
-	skinColors.groupBoxMainWin			= Colour(0xFF3b697e)
-	skinColors.groupBoxOutline			= Colour(0xFF182227)
+	skinColors.groupBoxBG			= Colour(0xFF1a2529)
+	skinColors.groupBoxMainWin		= Colour(0xFF3b697e)
+	skinColors.groupBoxOutline		= Colour(0xFF182227)
 	skinColors.groupBoxOutlineMainWin	= Colour(0xFF31586a)
-	skinColors.groupBoxLabel			= Colour(0xFFdca358)
+	skinColors.groupBoxLabel		= Colour(0xFFdca358)
 	skinColors.groupBoxLabelMainWin		= skinColors.labelTextColor
-	skinColors.groupBoxRounding			= 10
+	skinColors.groupBoxRounding		= 10
 
 	-- Settings layer
 	skinColors.settingsAlpha	= 1
@@ -4011,12 +4011,12 @@ function getSeqStepMaxVal(selectedMode)
 
 	if sharedValues.timbreMode == tmSynth then
 
-		-- Synthesizer mode:
+	-- Synthesizer mode:
 
-		-- As manual states:
-		-- When Knob is "Step Length" (2)				00~7F : - 6~0~+ 6 (*2-6)
+	-- As manual states:
+	-- When Knob is "Step Length" (2)		00~7F : - 6~0~+ 6 (*2-6)
     	-- When Knob is "Pitch" or "OSC2 Semi" (1 or 6)	00~7F : -24~0~+24 (*2-7)
-    	-- When Knob is others							00~7F : -63~0~+63 (*2-8)
+    	-- When Knob is others				00~7F : -63~0~+63 (*2-8)
 
 
 		if selectedMode == 2 then
@@ -4717,12 +4717,12 @@ function assertSysExFormulas(timbreNumber)
 		-- Numbers were verified one-by-one
 
 		-- Non-visual components
-		sharedValues.osc1SEValues 		= setNewModNumber(sharedValues.osc1SEValues,	numShift + 0x49)
-		sharedValues.oscModSEValues		= setNewModNumber(sharedValues.oscModSEValues,	numShift + 0x4E)
-		sharedValues.osc2SEValues		= setNewModNumber(sharedValues.osc2SEValues,	numShift + 0x4D)
-		sharedValues.filterSEValues		= setNewModNumber(sharedValues.filterSEValues,	numShift + 0x54)
-		sharedValues.LFO1SEValues		= setNewModNumber(sharedValues.LFO1SEValues,	numShift + 0x68)
-		sharedValues.LFO2SEValues		= setNewModNumber(sharedValues.LFO2SEValues,	numShift + 0x6D)
+		sharedValues.osc1SEValues 	= setNewModNumber(sharedValues.osc1SEValues,	numShift + 0x49)
+		sharedValues.oscModSEValues	= setNewModNumber(sharedValues.oscModSEValues,	numShift + 0x4E)
+		sharedValues.osc2SEValues	= setNewModNumber(sharedValues.osc2SEValues,	numShift + 0x4D)
+		sharedValues.filterSEValues	= setNewModNumber(sharedValues.filterSEValues,	numShift + 0x54)
+		sharedValues.LFO1SEValues	= setNewModNumber(sharedValues.LFO1SEValues,	numShift + 0x68)
+		sharedValues.LFO2SEValues	= setNewModNumber(sharedValues.LFO2SEValues,	numShift + 0x6D)
 
 		-- Visual components
 		-- Formulas in the synth mode can be calculated
@@ -4805,10 +4805,10 @@ function assertSysExFormulas(timbreNumber)
 	else
 
 		-- Non-visual components
-		sharedValues.osc1SEValues 		= setNewModNumber(sharedValues.osc1SEValues, 0x270)
-		sharedValues.filterSEValues		= setNewModNumber(sharedValues.filterSEValues, 0x300)
-		sharedValues.LFO1SEValues		= setNewModNumber(sharedValues.LFO1SEValues, 0x318)
-		sharedValues.LFO2SEValues		= setNewModNumber(sharedValues.LFO2SEValues, 0x320)
+		sharedValues.osc1SEValues 	= setNewModNumber(sharedValues.osc1SEValues, 0x270)
+		sharedValues.filterSEValues	= setNewModNumber(sharedValues.filterSEValues, 0x300)
+		sharedValues.LFO1SEValues	= setNewModNumber(sharedValues.LFO1SEValues, 0x318)
+		sharedValues.LFO2SEValues	= setNewModNumber(sharedValues.LFO2SEValues, 0x320)
 
 		setSEFormulaMod("cbTimbreMidiCh", 0x263)
 		setSEFormulaMod("cbTimbreAssign", 0x260)
@@ -5745,8 +5745,8 @@ function prepareForExport()
 	panelSettings.continuousPolling	= 1
 	panelSettings.autocheckLCDMode	= 0
 	panelSettings.disableWarnings	= 0
-	panelSettings.clockSource		= 2
-	panelSettings.localMode			= 1
+	panelSettings.clockSource	= 2
+	panelSettings.localMode		= 1
 
 	setModValue("btnSendProgramOnStartup", panelSettings.sendProgOnStartup)
 	setModValue("btnSendDataOnProgramChange", panelSettings.sendOnProgChange)
@@ -7421,7 +7421,7 @@ function saveStateOperations(stateData)
 
 	stateData:setProperty("sendProgOnStartup",	tostring(panelSettings.sendProgOnStartup), nil) -- Decided not to make this "Global"
 	stateData:setProperty("clockSource",		tostring(panelSettings.clockSource), nil)
-	stateData:setProperty("localMode",			tostring(panelSettings.localMode), nil)
+	stateData:setProperty("localMode",		tostring(panelSettings.localMode), nil)
 end
 
 function loadStateOperations(stateData)
@@ -7438,13 +7438,13 @@ function loadStateOperations(stateData)
 		end
 	end
 
-	sharedValues.selectedPreset			= tonumber(stateData:getProperty("selectedPreset"))
-	sharedValues.selectedBank 			= tonumber(stateData:getProperty("selectedBank"))
-	sharedValues.saveToRamEnabled		= tonumber(stateData:getProperty("saveToRamEnabled"))
+	sharedValues.selectedPreset	= tonumber(stateData:getProperty("selectedPreset"))
+	sharedValues.selectedBank 	= tonumber(stateData:getProperty("selectedBank"))
+	sharedValues.saveToRamEnabled	= tonumber(stateData:getProperty("saveToRamEnabled"))
 
-	panelSettings.sendProgOnStartup		= tonumber(stateData:getProperty("sendProgOnStartup"))
-	panelSettings.clockSource			= tonumber(stateData:getProperty("clockSource"))
-	panelSettings.localMode				= tonumber(stateData:getProperty("localMode"))
+	panelSettings.sendProgOnStartup	= tonumber(stateData:getProperty("sendProgOnStartup"))
+	panelSettings.clockSource	= tonumber(stateData:getProperty("clockSource"))
+	panelSettings.localMode		= tonumber(stateData:getProperty("localMode"))
 end
 
 function restoreGlobalSettings()
@@ -7459,12 +7459,12 @@ function restoreGlobalSettings()
 
 		panelSettingsExt = json.decode(settingsFile:loadFileAsString())
 
-		panelSettings.sendOnProgChange		= panelSettingsExt.sendOnProgChange
-		panelSettings.autocheckLCDMode		= panelSettingsExt.autocheckLCDMode
-		panelSettings.continuousPolling		= panelSettingsExt.continuousPolling
-		panelSettings.disableWarnings		= panelSettingsExt.disableWarnings
-		panelSettings.selectedSkin			= panelSettingsExt.selectedSkin
-		panelSettings.reqProgOnChange		= panelSettingsExt.reqProgOnChange
+		panelSettings.sendOnProgChange	= panelSettingsExt.sendOnProgChange
+		panelSettings.autocheckLCDMode	= panelSettingsExt.autocheckLCDMode
+		panelSettings.continuousPolling	= panelSettingsExt.continuousPolling
+		panelSettings.disableWarnings	= panelSettingsExt.disableWarnings
+		panelSettings.selectedSkin	= panelSettingsExt.selectedSkin
+		panelSettings.reqProgOnChange	= panelSettingsExt.reqProgOnChange
 	end
 end
 
