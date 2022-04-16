@@ -949,8 +949,8 @@ function getLocalSettingsFile()
 
 	local settingsFile = getLocalFile("config.json")
 
-	-- Check if file is empty
-	if settingsFile:getSize() > 0 then 
+	-- Check if file is empty or not exists
+	if (settingsFile ~= nil) and (settingsFile:getSize() > 0) then 
 
 		return settingsFile
 	else
@@ -5977,6 +5977,11 @@ function specialBounds(knobName, minValue, maxValue, defaultValue)
 end
 
 --[[
+
+	VERSION 1.3.4 (15.04.2022)
+
+	[F] Fixed error related to missing config.json file (thanks to user spiffo-smith)
+
 
 	VERSION 1.3.3 (23.02.2022)
 
