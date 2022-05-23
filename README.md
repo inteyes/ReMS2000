@@ -17,6 +17,8 @@ Here it is - free and open source Korg MS2000 MIDI editor and librarian panel.
 - [ ] Nothing more
 ### Note for users
 This software may contain bugs. <strike>Contact me by codec</strike> Feel free to report if you found any. Details of what happened and under what circumstances are highly appreciated. 
+### Download
+All files are available to download on the [latest Release](https://github.com/inteyes/ReMS2000/releases/latest) page of this repository. Be sure to check it out and grab the file that suits your needs.
 ### Quick start
 - Synthesizer side
   - Global options - 2A Memory Protect - Off
