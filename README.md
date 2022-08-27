@@ -1,3 +1,4 @@
+![](https://img.shields.io/badge/Status-Active-green)
 ## Re:MS2000
 Here it is - free and open source Korg MS2000 MIDI editor and librarian panel.
 ### What is implemented
