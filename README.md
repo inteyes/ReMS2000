@@ -29,7 +29,7 @@ All files are available to download on the [latest Release](https://github.com/i
   - Open panel
   - Set MIDI Input, MIDI Output, MIDI Channel (which you set above)
 
-I also suggest you to change synthesizer clock mode to "External" before transmitting / receiving bulk dump data to avoid data errors.
+I also suggest you to change synthesizer clock mode to "External" before transmitting / receiving bulk dump data to avoid [data errors](https://github.com/inteyes/ReMS2000/wiki/Troubleshooting#4-cannot-retrieve-single-program-or-bulk-dump-from-the-synthesizer-the-message-data-transmission-error-appears).
 
 At this point the panel is ready to work!
 ### Afterword
