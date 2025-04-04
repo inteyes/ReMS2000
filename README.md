@@ -15,7 +15,7 @@ Here it is - free and open source Korg MS2000 MIDI editor and librarian panel.
 - [X] Color schemes support
 - [X] Timbre randomizer
 ### What is in development
-- [ ] Nothing more
+- [ ] Windows 11 support
 ### Note for users
 This software may contain bugs. <strike>Contact me by codec</strike> Feel free to report if you found any. Details of what happened and under what circumstances are highly appreciated. 
 ### Download
